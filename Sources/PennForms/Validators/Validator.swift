@@ -40,3 +40,14 @@ public extension Validator where Self == AlwaysValidator {
 public extension Validator where Self == NeverValidator {
     static var never: NeverValidator { NeverValidator() }
 }
+
+public enum ValidPreferenceKey: PreferenceKey {
+    static public var defaultValue: Bool = true
+    public static func reduce(value: inout Bool, nextValue: () -> Bool) {
+        if !value {
+            return
+        } else {
+            value = nextValue()
+        }
+    }
+}

@@ -56,6 +56,7 @@ struct OptionField<Option: Hashable>: FormComponent {
                     Text(message)
                 }
                 .foregroundColor(.red)
+                .preference(key: ValidPreferenceKey.self, value: false)
             }
         }
     }

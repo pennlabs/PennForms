@@ -1,21 +1,33 @@
 import OrderedCollections
 import SwiftUI
 
-public struct LabsForm<Content: FormComponent>: View {
-    @FormBuilder let content: () -> Content
+public struct FormState {
+    public var isValid: Bool
     
-    init(@FormBuilder content: @escaping () -> Content) {
+    public init(isValid: Bool) {
+        self.isValid = isValid
+    }
+}
+
+public struct LabsForm<Content: FormComponent>: View {
+    @FormBuilder let content: (FormState) -> Content
+    @State private var formState: FormState = .init(isValid: true)
+    
+    init(@FormBuilder content: @escaping (FormState) -> Content) {
         self.content = content
     }
     
     public var body: some View {
-        content()
+        content(formState)
+            .onPreferenceChange(ValidPreferenceKey.self) { isValid in
+                formState.isValid = isValid
+            }
             .padding()
     }
 }
 
 extension HStack: FormComponent {}
-extension VStack:  FormComponent {}
+extension VStack: FormComponent {}
 extension TextField: FormComponent {}
 extension Text: FormComponent {}
 
@@ -43,10 +55,12 @@ struct TestForm: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                LabsForm {
+                LabsForm { formState in
                     TextLineField($name, placeholder: "Name")
+                        .validator(.required)
                     
                     TextAreaField($description, characterCount: 15, title: "Description")
+                        .validator(.required)
                     
                     DateRangeField(
                         lowerDate: $date1,
@@ -57,15 +71,19 @@ struct TestForm: View {
                         lowerPlaceholder: "Start date",
                         upperPlaceholder: "End date"
                     )
+                    .validator(.required)
                     
                     DateField(date: $date3, placeholder: "Date of birth")
+                        .validator(.required)
                     
                     PairFields {
                         OptionField($numRommates, range: 0...4, title: "# roommates")
+                            .validator(.required)
                         OptionField(
                             $negotiable,
                             options: Negotiable.allCases, title: "Negotiable?"
                         )
+                        .validator(.required)
                     }
                     
                     NumericField(
@@ -73,8 +91,26 @@ struct TestForm: View {
                         title: "Price",
                         format: .currency(code: "USD").presentation(.narrow)
                     )
+                    .validator(.required)
                     
                     TagSelector(selection: $selectedAmenities, tags: $amenities, customisable: .customisable(tagFromString: { $0}), title: "Amenities")
+                        .validator(.required)
+                    
+                    ComponentWrapper {
+                        Button(action: {}) {
+                            Text("Submit")
+                                .font(.title3)
+                                .bold()
+                        }
+                        .padding(.vertical, 10)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .background(in: Capsule())
+                        .foregroundStyle(.white)
+                        .backgroundStyle(formState.isValid ? .blue : .gray)
+                        .padding(.horizontal, 30)
+                        .padding(.top, 30)
+                        .disabled(!formState.isValid)
+                    }
                 }
             }
             .navigationTitle("Info form")

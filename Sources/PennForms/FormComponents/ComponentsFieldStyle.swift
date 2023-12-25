@@ -17,6 +17,7 @@ public extension View {
                     Text(validatorMessage)
                 }
                 .foregroundColor(.red)
+                .preference(key: ValidPreferenceKey.self, value: false)
             }
         }
         .padding(.bottom, 5)

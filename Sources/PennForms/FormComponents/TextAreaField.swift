@@ -55,6 +55,7 @@ public struct TextAreaField: FormComponent {
                     }
                 }
                 .foregroundColor(.red)
+                .preference(key: ValidPreferenceKey.self, value: false)
                 
                 if let characterCount {
                     Spacer()

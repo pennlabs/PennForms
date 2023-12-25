@@ -68,6 +68,15 @@ public struct TagSelector<Tag: Hashable>: FormComponent {
                     }
                     .buttonStyle(.plain)
                 }
+            
+            if !validator.isValid(selection as AnyValidator.Input), let message = validator.message {
+                HStack(spacing: 5) {
+                    Image(systemName: "exclamationmark.circle")
+                    Text(message)
+                }
+                .foregroundColor(.red)
+                .preference(key: ValidPreferenceKey.self, value: false)
+            }
         }
     }
 }
@@ -91,9 +100,9 @@ struct TagGrid<Tag: Hashable, Content: View>: View {
                     ForEach(rowElements, id: \.self) { element in
                         content(element)
                             .fixedSize()
-                        //              .readSize { size in
-                        //                elementsSize[element] = size
-                        //              }
+                            .readSize { size in
+                                elementsSize[element] = size
+                            }
                     }
                 }
             }
@@ -158,3 +167,20 @@ struct TagGrid<Tag: Hashable, Content: View>: View {
 }
 
 private func ignore<T>(_ v: T) { () }
+
+extension View {
+    func readSize(onChange: @escaping (CGSize) -> Void) -> some View {
+        background(
+            GeometryReader { geometryProxy in
+                Color.clear
+                    .preference(key: SizePreferenceKey.self, value: geometryProxy.size)
+            }
+        )
+        .onPreferenceChange(SizePreferenceKey.self, perform: onChange)
+    }
+}
+
+private struct SizePreferenceKey: PreferenceKey {
+    static var defaultValue: CGSize = .zero
+    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {}
+}

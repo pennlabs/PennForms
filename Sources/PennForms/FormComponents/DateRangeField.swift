@@ -57,6 +57,7 @@ public struct DateRangeField: FormComponent {
                     Text(validatorMessage)
                 }
                 .foregroundColor(.red)
+                .preference(key: ValidPreferenceKey.self, value: false)
             }
         }
         .padding(.bottom, 5)

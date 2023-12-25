@@ -26,6 +26,14 @@ public struct DateField: FormComponent {
         self._validator = Environment(\.validator)
     }
     
+    init(date: Binding<Date>, in range: ClosedRange<Date>? = nil, title: String? = nil, placeholder: String? = nil) {
+        self._date = date
+        self.range = range
+        self.title = title
+        self.placeholder = placeholder
+        self._validator = Environment(\.validator)
+    }
+    
     public var body: some View {
         VStack(alignment: .leading) {
             if let title {
@@ -68,6 +76,7 @@ public struct DateField: FormComponent {
                     Text(validatorMessage)
                 }
                 .foregroundColor(.red)
+                .preference(key: ValidPreferenceKey.self, value: false)
             }
         }
         .padding(.bottom, 5)
