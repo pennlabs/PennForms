@@ -4,7 +4,7 @@ public struct ManyValidators: Validator {
     public typealias Input = Any
     let validators: [AnyValidator]
     
-    init(_ validators: [AnyValidator]) {
+    public init(_ validators: [AnyValidator]) {
         self.validators = validators
         self.message =  validators[0].message
     }

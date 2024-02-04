@@ -11,12 +11,12 @@ public struct TagSelector<Tag: Hashable>: FormComponent {
     @Environment(\.validator) var validator
     @Environment(\.colorScheme) var colorScheme
     
-    enum Customisable {
+    public enum Customisable {
         case notCustomisable
         case customisable(tagFromString: (String) -> Tag)
     }
     
-    init(selection: Binding<OrderedSet<Tag>>, tags: Binding<OrderedSet<Tag>>, toString: @escaping (Tag) -> String, _ customisable: Customisable = .notCustomisable, title: String? = nil) {
+    public init(selection: Binding<OrderedSet<Tag>>, tags: Binding<OrderedSet<Tag>>, toString: @escaping (Tag) -> String, _ customisable: Customisable = .notCustomisable, title: String? = nil) {
         self._selection = selection
         self._tags = tags
         self.toString = toString
@@ -25,7 +25,7 @@ public struct TagSelector<Tag: Hashable>: FormComponent {
         self._validator = Environment(\.validator)
     }
     
-    init(selection: Binding<OrderedSet<Tag>>, tags: Binding<OrderedSet<Tag>>, customisable: Customisable = .notCustomisable, title: String? = nil) where Tag: RawRepresentable<String> {
+    public init(selection: Binding<OrderedSet<Tag>>, tags: Binding<OrderedSet<Tag>>, customisable: Customisable = .notCustomisable, title: String? = nil) where Tag: RawRepresentable<String> {
         self._selection = selection
         self._tags = tags
         self.toString = { $0.rawValue }
@@ -34,7 +34,7 @@ public struct TagSelector<Tag: Hashable>: FormComponent {
         self._validator = Environment(\.validator)
     }
     
-    init(selection: Binding<OrderedSet<Tag>>, tags: Binding<OrderedSet<Tag>>, customisable: Customisable = .notCustomisable, title: String? = nil) where Tag: LosslessStringConvertible {
+    public init(selection: Binding<OrderedSet<Tag>>, tags: Binding<OrderedSet<Tag>>, customisable: Customisable = .notCustomisable, title: String? = nil) where Tag: LosslessStringConvertible {
         self._selection = selection
         self._tags = tags
         self.toString = { $0.description }

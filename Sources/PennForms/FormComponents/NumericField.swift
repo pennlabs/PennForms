@@ -9,7 +9,7 @@ public struct NumericField<FormatStyle: ParseableFormatStyle>: FormComponent whe
     @Environment(\.validator) private var validator
     
     
-    init(_ value: Binding<Int?>, placeholder: String? = nil, title: String? = nil) where FormatStyle == Decimal.FormatStyle {
+    public init(_ value: Binding<Int?>, placeholder: String? = nil, title: String? = nil) where FormatStyle == Decimal.FormatStyle {
         self._value = Binding(get: {
             guard let v = value.wrappedValue else { return .nan }
             return Decimal(v)
@@ -25,7 +25,7 @@ public struct NumericField<FormatStyle: ParseableFormatStyle>: FormComponent whe
         UITextField.appearance().textColor = .secondaryLabel
     }
     
-    init(_ value: Binding<Int?>, format: FormatStyle, placeholder: String? = nil, title: String? = nil) {
+    public init(_ value: Binding<Int?>, format: FormatStyle, placeholder: String? = nil, title: String? = nil) {
         self._value = Binding(get: {
             guard let v = value.wrappedValue else { return .nan }
             return Decimal(v)
@@ -38,7 +38,7 @@ public struct NumericField<FormatStyle: ParseableFormatStyle>: FormComponent whe
         self._validator = Environment(\.validator)
     }
     
-    init(_ value: Binding<Double?>, placeholder: String? = nil, title: String? = nil) where FormatStyle == Decimal.FormatStyle {
+    public init(_ value: Binding<Double?>, placeholder: String? = nil, title: String? = nil) where FormatStyle == Decimal.FormatStyle {
         self._value = Binding(get: {
             guard let v = value.wrappedValue else { return .nan }
             return Decimal(v)
@@ -54,7 +54,7 @@ public struct NumericField<FormatStyle: ParseableFormatStyle>: FormComponent whe
         UITextField.appearance().textColor = .secondaryLabel
     }
     
-    init(_ value: Binding<Double?>, placeholder: String? = nil, title: String? = nil, format: FormatStyle) {
+    public init(_ value: Binding<Double?>, placeholder: String? = nil, title: String? = nil, format: FormatStyle) {
         self._value = Binding(get: {
             guard let v = value.wrappedValue else { return .nan }
             return Decimal(v)

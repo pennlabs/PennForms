@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct OptionField<Option: Hashable>: FormComponent {
+public struct OptionField<Option: Hashable>: FormComponent {
     @Binding var selection: Option?
     let options: [Option]
     let toString: (Option) -> String
@@ -9,7 +9,7 @@ struct OptionField<Option: Hashable>: FormComponent {
     
     @Environment(\.validator) var validator
     
-    init(_ selection: Binding<Option?>, options: [Option], toString: @escaping (Option) -> String, title: String? = nil, placeholder: String? = nil) {
+    public init(_ selection: Binding<Option?>, options: [Option], toString: @escaping (Option) -> String, title: String? = nil, placeholder: String? = nil) {
         self._selection = selection
         self.options = options
         self.toString = toString
@@ -17,7 +17,7 @@ struct OptionField<Option: Hashable>: FormComponent {
         self.placeholder = placeholder
     }
     
-    init(_ selection: Binding<Option?>, options: [Option], title: String? = nil, placeholder: String? = nil) where Option: CaseIterable, Option: RawRepresentable<String> {
+    public init(_ selection: Binding<Option?>, options: [Option], title: String? = nil, placeholder: String? = nil) where Option: CaseIterable, Option: RawRepresentable<String> {
         self._selection = selection
         self.options = options
         self.toString = { $0.rawValue }
@@ -25,7 +25,7 @@ struct OptionField<Option: Hashable>: FormComponent {
         self.placeholder = placeholder
     }
     
-    init(_ selection: Binding<Option?>, range: ClosedRange<Int>, title: String? = nil, placeholder: String? = nil) where Option == Int, Option: LosslessStringConvertible {
+    public init(_ selection: Binding<Option?>, range: ClosedRange<Int>, title: String? = nil, placeholder: String? = nil) where Option == Int, Option: LosslessStringConvertible {
         self._selection = selection
         self.options = Array(range)
         self.toString = { $0.description }
@@ -33,7 +33,7 @@ struct OptionField<Option: Hashable>: FormComponent {
         self.placeholder = placeholder
     }
     
-    var body: some View {
+    public var body: some View {
         VStack(alignment: .leading) {
             if let title {
                 Text(title)
