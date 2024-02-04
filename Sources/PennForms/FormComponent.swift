@@ -14,13 +14,13 @@ public struct _SequenceFormComponent<C0: FormComponent, C1: FormComponent>: Form
     }
 }
 
-struct ComponentWrapper<Content: View>: FormComponent {
+public struct ComponentWrapper<Content: View>: FormComponent {
     @ViewBuilder let content: () -> Content
     
-    init(content: @escaping () -> Content) {
+    public init(content: @escaping () -> Content) {
         self.content = content
     }
-    var body: some View {
+    public var body: some View {
         content()
     }
 }
