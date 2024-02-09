@@ -13,7 +13,7 @@ public struct LabsForm<Content: FormComponent>: View {
     @FormBuilder let content: (FormState) -> Content
     @State private var formState: FormState = .init(isValid: true)
     
-    init(@FormBuilder content: @escaping (FormState) -> Content) {
+    public init(@FormBuilder content: @escaping (FormState) -> Content) {
         self.content = content
     }
     

@@ -5,12 +5,12 @@ public struct FormGroup<Content: FormComponent>: FormComponent {
     @FormBuilder let content: () -> Content
     @Environment(\.validator) private var validator
     
-    init(title: String, @FormBuilder content: @escaping () -> Content) {
+    public init(title: String, @FormBuilder content: @escaping () -> Content) {
         self.title = title
         self.content = content
     }
     
-    init(@FormBuilder content: @escaping () -> Content) {
+    public init(@FormBuilder content: @escaping () -> Content) {
         self.title = nil
         self.content = content
     }

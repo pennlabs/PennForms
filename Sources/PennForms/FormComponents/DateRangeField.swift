@@ -13,7 +13,7 @@ public struct DateRangeField: FormComponent {
     let lowerPlaceholder: String?
     let upperPlaceholder: String?
     
-    init(lowerDate: Binding<Date?>, upperDate: Binding<Date?>, in range: ClosedRange<Date>? = nil, upperOffset: Int = 0, title: String? = nil, lowerPlaceholder: String? = nil, upperPlaceholder: String? = nil) {
+    public init(lowerDate: Binding<Date?>, upperDate: Binding<Date?>, in range: ClosedRange<Date>? = nil, upperOffset: Int = 0, title: String? = nil, lowerPlaceholder: String? = nil, upperPlaceholder: String? = nil) {
         self._lowerDate = Binding(
             get: {
                 guard let d = lowerDate.wrappedValue else { return .distantPast }
@@ -67,7 +67,7 @@ public struct DateRangeField: FormComponent {
         }
     }
     
-    func dateField(date: Binding<Date>, in range: ClosedRange<Date>, placeholder: String? = nil) -> some View {
+    public func dateField(date: Binding<Date>, in range: ClosedRange<Date>, placeholder: String? = nil) -> some View {
         HStack {
             Group {
                 if date.wrappedValue == .distantFuture || date.wrappedValue == .distantPast {

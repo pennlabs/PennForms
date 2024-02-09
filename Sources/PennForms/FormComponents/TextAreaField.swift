@@ -8,14 +8,14 @@ public struct TextAreaField: FormComponent {
     
     @Environment(\.validator) var validator
     
-    init(_ text: Binding<String>, characterCount: Int? = nil, title: String? = nil) {
+    public init(_ text: Binding<String>, characterCount: Int? = nil, title: String? = nil) {
         self._text = text
         self.characterCount = characterCount
         self.title = title
         self._validator = Environment(\.validator)
     }
     
-    init(_ text: Binding<String?>, characterCount: Int? = nil, title: String? = nil) {
+    public init(_ text: Binding<String?>, characterCount: Int? = nil, title: String? = nil) {
         self._text = Binding(
             get: {
                 guard let t = text.wrappedValue else { return "∞" }

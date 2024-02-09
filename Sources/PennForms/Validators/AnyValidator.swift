@@ -7,7 +7,7 @@ public struct AnyValidator: Validator {
         self.validator(input)
     }
     
-    init<V: Validator>(_ validator: V) where V.Input: Any {
+    public init<V: Validator>(_ validator: V) where V.Input: Any {
         self.validator = { input in
             guard let castInput = input as? V.Input else { return false}
             return validator.isValid(castInput)
@@ -15,7 +15,7 @@ public struct AnyValidator: Validator {
         self.message = validator.message
     }
     
-    init(_ isValid: @escaping () -> Bool, message: String? = nil) {
+    public init(_ isValid: @escaping () -> Bool, message: String? = nil) {
         self.validator = { _ in isValid() }
         self.message = message
         

@@ -10,7 +10,7 @@ public struct DateField: FormComponent {
     let title: String?
     let placeholder: String?
     
-    init(date: Binding<Date?>, in range: ClosedRange<Date>? = nil, title: String? = nil, placeholder: String? = nil) {
+    public init(date: Binding<Date?>, in range: ClosedRange<Date>? = nil, title: String? = nil, placeholder: String? = nil) {
         self._date = Binding(
             get: {
                 guard let d = date.wrappedValue else { return .distantFuture }
@@ -26,7 +26,7 @@ public struct DateField: FormComponent {
         self._validator = Environment(\.validator)
     }
     
-    init(date: Binding<Date>, in range: ClosedRange<Date>? = nil, title: String? = nil, placeholder: String? = nil) {
+    public init(date: Binding<Date>, in range: ClosedRange<Date>? = nil, title: String? = nil, placeholder: String? = nil) {
         self._date = date
         self.range = range
         self.title = title
