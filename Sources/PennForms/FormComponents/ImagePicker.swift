@@ -8,12 +8,20 @@
 import SwiftUI
 import PhotosUI
 
-struct ImagePicker: View {
-    @State var selection: [PhotosPickerItem] = []
-    @State var selectedImages: [Image] = []
-    @State var maxSelectionCount: Int = 5
+public struct ImagePicker: FormComponent {
+    @Environment(\.validator) var validator
+    @State var selection: [PhotosPickerItem]
+    @Binding var selectedImages: [Image]
+    let maxSelectionCount: Int
     
-    var body: some View {
+    public init(selectedImages: Binding<[Image]>, maxSelectionCount: Int = 5) {
+        self.selection = []
+        self._selectedImages = selectedImages
+        self.maxSelectionCount = maxSelectionCount
+        self._validator = Environment(\.validator)
+    }
+    
+    public var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             PhotosPicker(selection: $selection,
                          maxSelectionCount: maxSelectionCount,
@@ -67,5 +75,6 @@ struct ImagePicker: View {
 }
 
 #Preview {
-    ImagePicker()
+    @State var selectedImages: [Image] = []
+    return ImagePicker(selectedImages: $selectedImages, maxSelectionCount: 3)
 }
