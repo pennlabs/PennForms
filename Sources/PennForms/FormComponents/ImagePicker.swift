@@ -12,11 +12,13 @@ public struct ImagePicker: FormComponent {
     @Environment(\.validator) var validator
     @State var selection: [PhotosPickerItem]
     @Binding var selectedImages: [Image]
+    var imageData: Binding<[Data]>?
     let maxSelectionCount: Int
     
-    public init(selectedImages: Binding<[Image]>, maxSelectionCount: Int = 5) {
+    public init(_ selectedImages: Binding<[Image]>, imageData: Binding<[Data]>? = nil, maxSelectionCount: Int = 5) {
         self.selection = []
         self._selectedImages = selectedImages
+        self.imageData = imageData
         self.maxSelectionCount = maxSelectionCount
         self._validator = Environment(\.validator)
     }
@@ -38,9 +40,15 @@ public struct ImagePicker: FormComponent {
             .onChange(of: selection) { newSelection in
                 Task {
                     selectedImages.removeAll()
+                    imageData?.wrappedValue.removeAll()
                     for item in newSelection {
                         if let image = try? await item.loadTransferable(type: Image.self) {
                             selectedImages.append(image)
+                        }
+                        if imageData != nil {
+                            if let data = try? await item.loadTransferable(type: Data.self) {
+                                imageData!.wrappedValue.append(data)
+                            }
                         }
                     }
                 }
@@ -76,5 +84,6 @@ public struct ImagePicker: FormComponent {
 
 #Preview {
     @State var selectedImages: [Image] = []
-    return ImagePicker(selectedImages: $selectedImages, maxSelectionCount: 3)
+    @State var imageData: [Data] = []
+    return ImagePicker($selectedImages, imageData: $imageData, maxSelectionCount: 3)
 }
