@@ -11,14 +11,12 @@ import PhotosUI
 public struct ImagePicker: FormComponent {
     @Environment(\.validator) var validator
     @State var selection: [PhotosPickerItem]
-    @Binding var selectedImages: [Image]
-    var imageData: Binding<[Data]>?
+    @Binding var selectedImages: [UIImage]
     let maxSelectionCount: Int
     
-    public init(_ selectedImages: Binding<[Image]>, imageData: Binding<[Data]>? = nil, maxSelectionCount: Int = 5) {
+    public init(_ selectedImages: Binding<[UIImage]>, maxSelectionCount: Int = 5) {
         self.selection = []
         self._selectedImages = selectedImages
-        self.imageData = imageData
         self.maxSelectionCount = maxSelectionCount
         self._validator = Environment(\.validator)
     }
@@ -40,15 +38,9 @@ public struct ImagePicker: FormComponent {
             .onChange(of: selection) { newSelection in
                 Task {
                     selectedImages.removeAll()
-                    imageData?.wrappedValue.removeAll()
                     for item in newSelection {
-                        if let image = try? await item.loadTransferable(type: Image.self) {
+                        if let data = try? await item.loadTransferable(type: Data.self), let image = UIImage(data: data) {
                             selectedImages.append(image)
-                        }
-                        if imageData != nil {
-                            if let data = try? await item.loadTransferable(type: Data.self) {
-                                imageData!.wrappedValue.append(data)
-                            }
                         }
                     }
                 }
@@ -58,7 +50,7 @@ public struct ImagePicker: FormComponent {
                 HStack(spacing: 8) {
                     if selectedImages.count > 0 {
                         ForEach(Array(selectedImages.enumerated()), id: \.offset) { index, image in
-                            image
+                            Image(uiImage: image)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 120, height: 120)
@@ -83,7 +75,6 @@ public struct ImagePicker: FormComponent {
 }
 
 #Preview {
-    @State var selectedImages: [Image] = []
-    @State var imageData: [Data] = []
-    return ImagePicker($selectedImages, imageData: $imageData, maxSelectionCount: 3)
+    @State var selectedImages: [UIImage] = []
+    return ImagePicker($selectedImages, maxSelectionCount: 3)
 }
