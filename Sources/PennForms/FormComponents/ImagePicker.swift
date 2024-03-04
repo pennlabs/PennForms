@@ -61,7 +61,7 @@ public struct ImagePicker: FormComponent {
                                 content: { image in
                                     image.resizable()
                                          .aspectRatio(contentMode: .fit)
-                                         .customBadge(imageStr: "xmark", badgeColor: Color(uiColor: .systemGray3), textColor: Color(uiColor: .systemGray), action: {
+                                         .badge(imageStr: "xmark", badgeColor: Color(uiColor: .systemGray3), textColor: Color(uiColor: .systemGray), action: {
                                              withAnimation {
                                                  existingImages.removeAll(where: { $0 == url })
                                              }
@@ -100,7 +100,7 @@ public struct ImagePicker: FormComponent {
     }
 }
 
-struct BadgeModifier: ViewModifier {
+struct CustomBadgeModifier: ViewModifier {
     let text: String?
     let imageStr: String?
     let badgeColor: Color
@@ -162,12 +162,12 @@ struct BadgeModifier: ViewModifier {
 }
 
 public extension View {
-    func customBadge(_ text: String, badgeColor: Color = .red, textColor: Color = .white, enabled: Bool = true, action: (() -> Void)? = nil) -> some View {
-        self.modifier(BadgeModifier(text: text, badgeColor: badgeColor, textColor: textColor, enabled: enabled, action: action))
+    func badge(_ text: String, badgeColor: Color = .red, textColor: Color = .white, enabled: Bool = true, action: (() -> Void)? = nil) -> some View {
+        self.modifier(CustomBadgeModifier(text: text, badgeColor: badgeColor, textColor: textColor, enabled: enabled, action: action))
     }
     
-    func customBadge(imageStr: String, badgeColor: Color = .red, textColor: Color = .white, enabled: Bool = true, action: (() -> Void)? = nil) -> some View {
-        self.modifier(BadgeModifier(imageStr: imageStr, badgeColor: badgeColor, textColor: textColor, enabled: enabled, action: action))
+    func badge(imageStr: String, badgeColor: Color = .red, textColor: Color = .white, enabled: Bool = true, action: (() -> Void)? = nil) -> some View {
+        self.modifier(CustomBadgeModifier(imageStr: imageStr, badgeColor: badgeColor, textColor: textColor, enabled: enabled, action: action))
     }
 }
 
