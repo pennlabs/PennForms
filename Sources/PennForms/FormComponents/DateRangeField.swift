@@ -47,8 +47,8 @@ public struct DateRangeField: FormComponent {
                     .bold()
             }
             HStack {
-                dateField(date: $lowerDate, in: self.range.lowerBound...upperDate, placeholder: lowerPlaceholder)
-                dateField(date: $upperDate, in: lowerDate...self.range.upperBound, placeholder: upperPlaceholder)
+                DateRangeSubfield(date: $lowerDate, range: self.range.lowerBound...upperDate, placeholder: lowerPlaceholder, wasSet: $wasSet)
+                DateRangeSubfield(date: $upperDate, range: lowerDate...self.range.upperBound, placeholder: upperPlaceholder, wasSet: $wasSet)
             }
             
             if !validator.isValid(lowerDate as AnyValidator.Input) || !validator.isValid(upperDate as AnyValidator.Input), let validatorMessage = validator.message {
@@ -66,42 +66,65 @@ public struct DateRangeField: FormComponent {
             self.upperDate = Calendar.current.date(byAdding: .day, value: upperOffset, to: .now) ?? (self.range.upperBound == .distantFuture ? .now : self.range.upperBound)
         }
     }
+}
+
+private struct DateRangeSubfield: View {
+    @Binding var date: Date
+    var range: ClosedRange<Date>
+    var placeholder: String?
+    @Binding var wasSet: Bool
     
-    public func dateField(date: Binding<Date>, in range: ClosedRange<Date>, placeholder: String? = nil) -> some View {
-        HStack {
-            Group {
-                if date.wrappedValue == .distantFuture || date.wrappedValue == .distantPast {
-                    Text(placeholder ?? "")
-                        .foregroundStyle(.secondary)
-                    
-                } else {
-                    Text(date.wrappedValue, format: .dateTime.month(.twoDigits).day(.twoDigits).year())
+    @Environment(\.validator) var validator
+    @Environment(\.colorScheme) var colorScheme
+    @State var isPickerVisible = false
+    
+    var body: some View {
+        Button {
+            isPickerVisible.toggle()
+            wasSet = true
+        } label: {
+            HStack {
+                Group {
+                    if date == .distantPast || date == .distantFuture {
+                        Text(placeholder ?? "")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text(date, format: .dateTime.month(.twoDigits).day(.twoDigits).year())
+                    }
                 }
+                .tint(colorScheme == .dark ? .white : .black)
+                
+                Spacer()
+                Image(systemName: "calendar")
+                    .font(.title3)
+                    .foregroundStyle(.tint)
             }
-            Spacer()
-            Image(systemName: "calendar")
-                .font(.title3)
-                .foregroundStyle(.blue)
-                .overlay {
-                    DatePicker("", selection: date, in: range, displayedComponents: [.date])
-                        .onTapGesture {
-                            self.wasSet = true
-                        }
-                        .overlay(alignment: .bottomTrailing, content: {
-                            Button(action: { date.wrappedValue = range.lowerBound == .distantPast ? .distantPast : .distantFuture}) {
-                                Image(systemName: "x.circle.fill")
-                                    .foregroundStyle(.red)
-                            }
-                        })
-                        .blendMode(.destinationOver)
-                }
+            .padding(.vertical, 15)
+            .padding(.horizontal, 10)
+            .cornerRadius(10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(validator.isValid(date as AnyValidator.Input) ? Color.secondary.opacity(0.3): Color.red , lineWidth: 2)
+            )
         }
-        .padding(.vertical, 15)
-        .padding(.horizontal, 10)
-        .cornerRadius(10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(validator.isValid(date as AnyValidator.Input) ? Color.secondary.opacity(0.3): Color.red , lineWidth: 2)
-        )
+        .popover(isPresented: $isPickerVisible) {
+            NavigationStack {
+                DatePicker("", selection: $date, in: range, displayedComponents: [.date])
+                    .datePickerStyle(.graphical)
+                    .padding(.horizontal)
+                    .navigationTitle(placeholder ?? "Select Date")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .frame(maxHeight: .infinity, alignment: .top)
+                    .toolbar {
+                        ToolbarItem(placement: .primaryAction) {
+                            Button("Done") {
+                                isPickerVisible = false
+                            }
+                        }
+                    }
+            }
+            .presentationDetents([.medium])
+            .presentationDragIndicator(.visible)
+        }
     }
 }

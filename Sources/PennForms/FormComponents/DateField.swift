@@ -3,8 +3,9 @@ import SwiftUI
 public struct DateField: FormComponent {
     
     @Binding var date: Date
-    @State var wasSet: Bool = false
+    @State var isPickerVisible = false
     @Environment(\.validator) var validator
+    @Environment(\.colorScheme) var colorScheme
     
     let range: ClosedRange<Date>?
     let title: String?
@@ -40,35 +41,39 @@ public struct DateField: FormComponent {
                 Text(title)
                     .bold()
             }
-            HStack {
-                Group {
-                    if date == .distantFuture {
-                        Text(placeholder ?? "")
-                            .foregroundStyle(.secondary)
-                        
-                    } else {
-                        Text(date, format: .dateTime.month(.twoDigits).day(.twoDigits).year())
-                    }
+            
+            Button {
+                if !isPickerVisible && date == .distantFuture {
+                    date = Date()
                 }
-                Spacer()
-                Image(systemName: "calendar")
-                    .font(.title3)
-                    .foregroundStyle(.blue)
-                    .overlay {
-                        DatePicker("", selection: $date, in: self.range ?? Date.distantPast...Date.distantFuture, displayedComponents: [.date])
-                            .onTapGesture {
-                                self.wasSet = true
-                            }
-                            .blendMode(.destinationOver)
+                
+                isPickerVisible.toggle()
+            } label: {
+                HStack {
+                    Group {
+                        if date == .distantFuture {
+                            Text(placeholder ?? "")
+                                .foregroundStyle(.secondary)
+                            
+                        } else {
+                            Text(date, format: .dateTime.month(.twoDigits).day(.twoDigits).year())
+                        }
                     }
+                    .tint(colorScheme == .dark ? .white : .black)
+
+                    Spacer()
+                    Image(systemName: "calendar")
+                        .font(.title3)
+                        .foregroundStyle(.tint)
+                }
+                .padding(.vertical, 15)
+                .padding(.horizontal, 10)
+                .cornerRadius(10)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(validator.isValid(date as AnyValidator.Input) ? Color.secondary.opacity(0.3): Color.red , lineWidth: 2)
+                )
             }
-            .padding(.vertical, 15)
-            .padding(.horizontal, 10)
-            .cornerRadius(10)
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(validator.isValid(date as AnyValidator.Input) ? Color.secondary.opacity(0.3): Color.red , lineWidth: 2)
-            )
             
             if !validator.isValid(date as AnyValidator.Input), let validatorMessage = validator.message {
                 HStack(spacing: 5) {
@@ -80,8 +85,24 @@ public struct DateField: FormComponent {
             }
         }
         .padding(.bottom, 5)
-        .onChange(of: wasSet) { _ in
-            self.date = .now
+        .popover(isPresented: $isPickerVisible) {
+            NavigationStack {
+                DatePicker("", selection: $date, in: self.range ?? Date.distantPast...Date.distantFuture, displayedComponents: [.date])
+                    .datePickerStyle(.graphical)
+                    .padding(.horizontal)
+                    .navigationTitle(title ?? "Select Date")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .frame(maxHeight: .infinity, alignment: .top)
+                    .toolbar {
+                        ToolbarItem(placement: .primaryAction) {
+                            Button("Done") {
+                                isPickerVisible = false
+                            }
+                        }
+                    }
+            }
+            .presentationDetents([.medium])
+            .presentationDragIndicator(.visible)
         }
     }
 }
