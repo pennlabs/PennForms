@@ -101,19 +101,22 @@ internal struct DatePickerPopover: View {
     
     var innerBody: some View {
         NavigationStack {
-            DatePicker("", selection: $date, in: range, displayedComponents: [.date])
-                .datePickerStyle(.graphical)
-                .padding(.horizontal)
-                .navigationTitle(title ?? "Select Date")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button("Done") {
-                            dismiss()
-                        }
+            ScrollView {
+                VStack(spacing: 0) {
+                    DatePicker("", selection: $date, in: range, displayedComponents: [.date])
+                        .datePickerStyle(.graphical)
+                    
+                    Button("Select") {
+                        dismiss()
                     }
+                    .buttonBorderShape(.capsule)
+                    .buttonStyle(BorderedProminentButtonStyle())
+                    .fontWeight(.bold)
                 }
-                .frame(width: 400, height: 480, alignment: .top)
+                .padding([.horizontal, .bottom])
+            }
+            .navigationTitle(title ?? "Select Date")
+            .navigationBarTitleDisplayMode(.inline)
         }
         .presentationDetents([.height(500)])
         .presentationDragIndicator(.visible)
