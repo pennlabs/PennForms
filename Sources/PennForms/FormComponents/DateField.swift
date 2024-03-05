@@ -86,23 +86,37 @@ public struct DateField: FormComponent {
         }
         .padding(.bottom, 5)
         .popover(isPresented: $isPickerVisible) {
-            NavigationStack {
-                DatePicker("", selection: $date, in: self.range ?? Date.distantPast...Date.distantFuture, displayedComponents: [.date])
-                    .datePickerStyle(.graphical)
-                    .padding(.horizontal)
-                    .navigationTitle(title ?? "Select Date")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .frame(maxHeight: .infinity, alignment: .top)
-                    .toolbar {
-                        ToolbarItem(placement: .primaryAction) {
-                            Button("Done") {
-                                isPickerVisible = false
-                            }
+            DatePickerPopover(date: $date, range: self.range ?? Date.distantPast...Date.distantFuture, title: title)
+        }
+    }
+}
+
+internal struct DatePickerPopover: View {
+    @Binding var date: Date
+    var range: ClosedRange<Date>
+    var title: String?
+    
+    @Environment(\.dismiss) var dismiss
+    @Environment(\.verticalSizeClass) var sizeClass
+    
+    var body: some View {
+        NavigationStack {
+            DatePicker("", selection: $date, in: range, displayedComponents: [.date])
+                .datePickerStyle(.graphical)
+                .padding(.horizontal)
+                .navigationTitle(title ?? "Select Date")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button("Done") {
+                            dismiss()
                         }
                     }
-            }
-            .presentationDetents([.medium])
-            .presentationDragIndicator(.visible)
+                }
+                .frame(width: 400, height: 480, alignment: .top)
         }
+        .presentationDetents([.height(500)])
+        .presentationDragIndicator(.visible)
+        .frame(minWidth: 400, minHeight: 500)
     }
 }

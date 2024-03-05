@@ -108,23 +108,7 @@ private struct DateRangeSubfield: View {
             )
         }
         .popover(isPresented: $isPickerVisible) {
-            NavigationStack {
-                DatePicker("", selection: $date, in: range, displayedComponents: [.date])
-                    .datePickerStyle(.graphical)
-                    .padding(.horizontal)
-                    .navigationTitle(placeholder ?? "Select Date")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .frame(maxHeight: .infinity, alignment: .top)
-                    .toolbar {
-                        ToolbarItem(placement: .primaryAction) {
-                            Button("Done") {
-                                isPickerVisible = false
-                            }
-                        }
-                    }
-            }
-            .presentationDetents([.medium])
-            .presentationDragIndicator(.visible)
+            DatePickerPopover(date: $date, range: range, title: placeholder)
         }
     }
 }
