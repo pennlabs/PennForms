@@ -99,7 +99,7 @@ internal struct DatePickerPopover: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.verticalSizeClass) var sizeClass
     
-    var body: some View {
+    var innerBody: some View {
         NavigationStack {
             DatePicker("", selection: $date, in: range, displayedComponents: [.date])
                 .datePickerStyle(.graphical)
@@ -118,5 +118,14 @@ internal struct DatePickerPopover: View {
         .presentationDetents([.height(500)])
         .presentationDragIndicator(.visible)
         .frame(minWidth: 400, minHeight: 500)
+    }
+    
+    var body: some View {
+        if #available(iOS 16.4, *) {
+            innerBody
+                .presentationBackground(.regularMaterial)
+        } else {
+            innerBody
+        }
     }
 }
