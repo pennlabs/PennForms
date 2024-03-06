@@ -39,7 +39,7 @@ public struct ImagePicker: FormComponent {
                 .frame(width: 350, height: 200)
                 .background(RoundedRectangle(cornerRadius: 8)
                     .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [7])))
-                .foregroundColor(Color.secondary)
+                .foregroundColor(validator.isValid(selectedImages.count + existingImages.count) ? Color.secondary : Color.red)
             }
             .onChange(of: selection) { newSelection in
                 Task {
@@ -93,9 +93,19 @@ public struct ImagePicker: FormComponent {
                     }
                 }
             }
-            Text("Add up to \(maxSelectionCount) photo\(maxSelectionCount == 1 ? "" : "s")")
-                .font(.subheadline)
-                .foregroundColor(Color.secondary)
+            
+            if !validator.isValid(selectedImages.count + existingImages.count), let validatorMessage = validator.message {
+                HStack(spacing: 5) {
+                    Image(systemName: "exclamationmark.circle")
+                    Text(validatorMessage)
+                }
+                .foregroundColor(.red)
+                .preference(key: ValidPreferenceKey.self, value: false)
+            } else {
+                Text("Add up to \(maxSelectionCount) photo\(maxSelectionCount == 1 ? "" : "s")")
+                    .font(.subheadline)
+                    .foregroundColor(Color.secondary)
+            }
         }
     }
 }
@@ -175,4 +185,5 @@ public extension View {
     @State var selectedImages: [UIImage] = []
     @State var existingImages: [String] = []
     return ImagePicker($selectedImages, existingImages: $existingImages, maxSelectionCount: 3)
+        .validator(AtLeastValidator(value: 1, { "Must select at least \($0) image\($0 == 1 ? "" : "s")" }))
 }

@@ -34,6 +34,8 @@ extension Text: FormComponent {}
 
 struct TestForm: View {
     @State private var name: String?
+    @State var selectedImages: [UIImage] = []
+    @State var existingImages: [String] = []
     @State private var description: String?
     @State private var date1: Date? = nil
     @State private var date2: Date? = nil
@@ -56,6 +58,9 @@ struct TestForm: View {
                 LabsForm { formState in
                     TextLineField($name, placeholder: "Name")
                         .validator(.required)
+                    
+                    ImagePicker($selectedImages, existingImages: $existingImages, maxSelectionCount: 3)
+                        .validator(AtLeastValidator(value: 1, { "Must select at least \($0) image\($0 == 1 ? "" : "s")" }))
                     
                     TextAreaField($description, characterCount: 15, title: "Description")
                         .validator(.required)
