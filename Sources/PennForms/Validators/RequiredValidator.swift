@@ -47,7 +47,7 @@ extension Decimal: HasEmpty {
 
 extension Date: HasEmpty {
     public var empty: Bool {
-        self == .distantFuture
+        self == .distantPast || self == .distantFuture
     }
 }
 
