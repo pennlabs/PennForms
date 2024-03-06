@@ -32,9 +32,7 @@ extension TextField: FormComponent {}
 extension Text: FormComponent {}
 
 
-
 struct TestForm: View {
-    
     @State private var name: String?
     @State private var description: String?
     @State private var date1: Date? = nil

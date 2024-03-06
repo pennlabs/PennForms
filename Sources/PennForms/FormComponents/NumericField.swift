@@ -21,6 +21,7 @@ public struct NumericField<FormatStyle: ParseableFormatStyle>: FormComponent whe
         self.format = .number
         self._validator = Environment(\.validator)
         
+        // MARK - This is making the pair bug out
         UITextField.appearance().text = placeholder ?? ""
         UITextField.appearance().textColor = .secondaryLabel
     }
@@ -80,8 +81,10 @@ public struct NumericField<FormatStyle: ParseableFormatStyle>: FormComponent whe
                         textField.text = placeholder
                     }
                     if !textField.isEditing {
+                      if self.value == .nan {
                         textField.text = ""
                         textField.textColor = .secondaryLabel
+                      }
                     } else {
                         textField.textColor = .label
                         

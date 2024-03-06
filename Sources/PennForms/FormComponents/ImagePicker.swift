@@ -11,12 +11,18 @@ import PhotosUI
 public struct ImagePicker: FormComponent {
     @Environment(\.validator) var validator
     @State var selection: [PhotosPickerItem]
-    @Binding var selectedImages: [Image]
+    @Binding var selectedImages: [UIImage]
+    @Binding var existingImages: [String]
     let maxSelectionCount: Int
     
-    public init(selectedImages: Binding<[Image]>, maxSelectionCount: Int = 5) {
+    public init(_ selectedImages: Binding<[UIImage]>, existingImages: Binding<[String]>? = nil as Binding<[String]>?, maxSelectionCount: Int = 5) {
         self.selection = []
         self._selectedImages = selectedImages
+        if let existingImagesBinding = existingImages {
+            self._existingImages = existingImagesBinding
+        } else {
+            self._existingImages = State(initialValue: []).projectedValue
+        }
         self.maxSelectionCount = maxSelectionCount
         self._validator = Environment(\.validator)
     }
@@ -24,7 +30,7 @@ public struct ImagePicker: FormComponent {
     public var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             PhotosPicker(selection: $selection,
-                         maxSelectionCount: maxSelectionCount,
+                         maxSelectionCount: maxSelectionCount - existingImages.count,
                          matching: .any(of: [.images, .not(.videos)])) {
                 VStack(spacing: 8) {
                     Image(systemName: "photo.badge.plus")
@@ -39,7 +45,7 @@ public struct ImagePicker: FormComponent {
                 Task {
                     selectedImages.removeAll()
                     for item in newSelection {
-                        if let image = try? await item.loadTransferable(type: Image.self) {
+                        if let data = try? await item.loadTransferable(type: Data.self), let image = UIImage(data: data) {
                             selectedImages.append(image)
                         }
                     }
@@ -48,16 +54,36 @@ public struct ImagePicker: FormComponent {
             
             ScrollView(.horizontal) {
                 HStack(spacing: 8) {
+                    if existingImages.count > 0 {
+                        ForEach(existingImages, id: \.self) { url in
+                            AsyncImage(
+                                url: URL(string: url),
+                                content: { image in
+                                    image.resizable()
+                                         .aspectRatio(contentMode: .fit)
+                                         .badge(imageStr: "xmark", badgeColor: Color(uiColor: .systemGray3), textColor: Color(uiColor: .systemGray), action: {
+                                             withAnimation {
+                                                 existingImages.removeAll(where: { $0 == url })
+                                             }
+                                         })
+                                         .frame(width: 120, height: 120)
+                                },
+                                placeholder: {
+                                    ProgressView()
+                                }
+                            )
+                        }
+                    }
                     if selectedImages.count > 0 {
-                        ForEach(Array(selectedImages.enumerated()), id: \.offset) { index, image in
-                            image
+                        ForEach(selectedImages, id: \.self) { image in
+                            Image(uiImage: image)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 120, height: 120)
                         }
                     }
-                    if selectedImages.count < maxSelectionCount {
-                        ForEach(0..<(maxSelectionCount - selectedImages.count), id: \.self) { _ in
+                    if selectedImages.count + existingImages.count < maxSelectionCount {
+                        ForEach(0..<(maxSelectionCount - selectedImages.count - existingImages.count), id: \.self) { _ in
                             Image(systemName: "photo.badge.plus")
                                 .frame(width: 120, height: 120)
                                 .background(RoundedRectangle(cornerRadius: 8)
@@ -74,7 +100,79 @@ public struct ImagePicker: FormComponent {
     }
 }
 
+struct CustomBadgeModifier: ViewModifier {
+    let text: String?
+    let imageStr: String?
+    let badgeColor: Color
+    let textColor: Color
+    let enabled: Bool
+    let action: (() -> Void)?
+    
+    init(text: String? = nil, imageStr: String? = nil, badgeColor: Color = .red, textColor: Color = .white, enabled: Bool = true, action: (() -> Void)? = nil) {
+        self.text = text
+        self.imageStr = imageStr
+        self.badgeColor = badgeColor
+        self.textColor = textColor
+        self.enabled = enabled
+        self.action = action
+    }
+    
+    @ViewBuilder
+    func badgeView() -> some View {
+        ZStack {
+            Circle()
+                .fill(badgeColor)
+                .frame(width: 20, height: 20)
+
+            if let text = text {
+                Text(text)
+                    .foregroundColor(textColor)
+                    .font(.system(size: 12))
+            } else if let imageStr = imageStr {
+                Image(systemName: imageStr)
+                    .resizable()
+                    .foregroundColor(textColor)
+                    .frame(width: 10, height: 10)
+            }
+        }
+        .offset(x: 10, y: -10)
+    }
+    
+    func body(content: Content) -> some View {
+        if enabled {
+            if let action = action {
+                content
+                    .overlay(
+                        Button(action: action) {
+                            badgeView()
+                        },
+                        alignment: .topTrailing
+                    )
+            } else {
+                content
+                    .overlay(
+                        badgeView(),
+                        alignment: .topTrailing
+                    )
+            }
+        } else {
+            content
+        }
+    }
+}
+
+public extension View {
+    func badge(_ text: String, badgeColor: Color = .red, textColor: Color = .white, enabled: Bool = true, action: (() -> Void)? = nil) -> some View {
+        self.modifier(CustomBadgeModifier(text: text, badgeColor: badgeColor, textColor: textColor, enabled: enabled, action: action))
+    }
+    
+    func badge(imageStr: String, badgeColor: Color = .red, textColor: Color = .white, enabled: Bool = true, action: (() -> Void)? = nil) -> some View {
+        self.modifier(CustomBadgeModifier(imageStr: imageStr, badgeColor: badgeColor, textColor: textColor, enabled: enabled, action: action))
+    }
+}
+
 #Preview {
-    @State var selectedImages: [Image] = []
-    return ImagePicker(selectedImages: $selectedImages, maxSelectionCount: 3)
+    @State var selectedImages: [UIImage] = []
+    @State var existingImages: [String] = []
+    return ImagePicker($selectedImages, existingImages: $existingImages, maxSelectionCount: 3)
 }
