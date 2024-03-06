@@ -53,7 +53,7 @@ struct TestForm: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 LabsForm { formState in
                     TextLineField($name, placeholder: "Name")
