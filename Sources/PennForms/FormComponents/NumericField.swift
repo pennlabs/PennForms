@@ -89,7 +89,10 @@ public struct NumericField<FormatStyle: ParseableFormatStyle>: FormComponent whe
                         textField.textColor = .label
                         
                     }
+                  
+                  if textField.isEditing {
                     textField.text = textField.text?.trimmingCharacters(in: CharacterSet(charactersIn: "0123456789.,").inverted)
+                  }
                 })
                 .componentFormStyle(
                     isValid: validator.isValid(value as AnyValidator.Input), validatorMessage: validator.message
