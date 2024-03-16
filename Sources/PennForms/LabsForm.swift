@@ -59,7 +59,7 @@ struct TestForm: View {
                     TextLineField($name, placeholder: "Name")
                         .validator(.required)
                     
-                    ImagePicker($selectedImages, existingImages: $existingImages, maxSelectionCount: 3)
+                    ImagePicker($selectedImages, existingImages: $existingImages, maxSelectionCount: 5)
                         .validator(AtLeastValidator(value: 1, { "Must select at least \($0) image\($0 == 1 ? "" : "s")" }))
                     
                     TextAreaField($description, characterCount: 15, title: "Description")
