@@ -6,6 +6,7 @@ public struct DateRangeField: FormComponent {
     @Binding var upperDate: Date
     @State var wasSet: Bool = false
     @Environment(\.validator) var validator
+    @Environment(\.showValidationErrors) var showValidationErrors
     
     let range: ClosedRange<Date>
     let upperOffset: Int
@@ -51,7 +52,7 @@ public struct DateRangeField: FormComponent {
                 DateRangeSubfield(date: $upperDate, range: lowerDate...self.range.upperBound, placeholder: upperPlaceholder, wasSet: $wasSet)
             }
             
-            if !validator.isValid(lowerDate as AnyValidator.Input) || !validator.isValid(upperDate as AnyValidator.Input), let validatorMessage = validator.message {
+            if showValidationErrors, !validator.isValid(lowerDate as AnyValidator.Input) || !validator.isValid(upperDate as AnyValidator.Input), let validatorMessage = validator.message {
                 HStack(spacing: 5) {
                     Image(systemName: "exclamationmark.circle")
                     Text(validatorMessage)
@@ -76,6 +77,7 @@ private struct DateRangeSubfield: View {
     
     @Environment(\.validator) var validator
     @Environment(\.colorScheme) var colorScheme
+    @Environment(\.showValidationErrors) var showValidationErrors
     @State var isPickerVisible = false
     
     var body: some View {
@@ -104,7 +106,7 @@ private struct DateRangeSubfield: View {
             .cornerRadius(10)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(validator.isValid(date as AnyValidator.Input) ? Color.secondary.opacity(0.3): Color.red , lineWidth: 2)
+                    .stroke(!showValidationErrors || validator.isValid(date as AnyValidator.Input) ? Color.secondary.opacity(0.3): Color.red , lineWidth: 2)
             )
         }
         .popover(isPresented: $isPickerVisible) {

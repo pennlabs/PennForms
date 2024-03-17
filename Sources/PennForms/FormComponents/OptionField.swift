@@ -8,6 +8,7 @@ public struct OptionField<Option: Hashable>: FormComponent {
     let placeholder: String?
     
     @Environment(\.validator) var validator
+    @Environment(\.showValidationErrors) var showValidationErrors
     
     public init(_ selection: Binding<Option?>, options: [Option], toString: @escaping (Option) -> String, title: String? = nil, placeholder: String? = nil) {
         self._selection = selection
@@ -50,7 +51,7 @@ public struct OptionField<Option: Hashable>: FormComponent {
             .customPickerStyle(
                 labelText: selection == nil ? nil : toString(selection!), placeholder: placeholder, width: 200, isValid: validator.isValid(selection as AnyValidator.Input)
             )
-            if !validator.isValid(selection as AnyValidator.Input), let message = validator.message {
+            if showValidationErrors, !validator.isValid(selection as AnyValidator.Input), let message = validator.message {
                 HStack(spacing: 5) {
                     Image(systemName: "exclamationmark.circle")
                     Text(message)
@@ -67,6 +68,8 @@ struct CustomPickerStyle: ViewModifier {
     let placeholder: String?
     var width: CGFloat
     let isValid: Bool
+    
+    @Environment(\.showValidationErrors) var showValidationErrors
     
     func body(content: Content) -> some View {
         Menu {
@@ -88,7 +91,7 @@ struct CustomPickerStyle: ViewModifier {
         .background(.background)
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(isValid ? Color.secondary.opacity(0.3): Color.red , lineWidth: 2)
+                .stroke(isValid || !showValidationErrors ? Color.secondary.opacity(0.3): Color.red , lineWidth: 2)
         )
     }
 }

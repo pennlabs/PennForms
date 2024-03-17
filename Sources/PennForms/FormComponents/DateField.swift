@@ -6,6 +6,7 @@ public struct DateField: FormComponent {
     @State var isPickerVisible = false
     @Environment(\.validator) var validator
     @Environment(\.colorScheme) var colorScheme
+    @Environment(\.showValidationErrors) var showValidationErrors
     
     let range: ClosedRange<Date>?
     let title: String?
@@ -71,11 +72,11 @@ public struct DateField: FormComponent {
                 .cornerRadius(10)
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(validator.isValid(date as AnyValidator.Input) ? Color.secondary.opacity(0.3): Color.red , lineWidth: 2)
+                        .stroke(!showValidationErrors || validator.isValid(date as AnyValidator.Input) ? Color.secondary.opacity(0.3): Color.red , lineWidth: 2)
                 )
             }
             
-            if !validator.isValid(date as AnyValidator.Input), let validatorMessage = validator.message {
+            if showValidationErrors, !validator.isValid(date as AnyValidator.Input), let validatorMessage = validator.message {
                 HStack(spacing: 5) {
                     Image(systemName: "exclamationmark.circle")
                     Text(validatorMessage)

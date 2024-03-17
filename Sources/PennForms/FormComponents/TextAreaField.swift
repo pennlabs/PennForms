@@ -7,6 +7,7 @@ public struct TextAreaField: FormComponent {
     let characterCount: Int?
     
     @Environment(\.validator) var validator
+    @Environment(\.showValidationErrors) var showValidationErrors
     
     public init(_ text: Binding<String>, characterCount: Int? = nil, title: String? = nil) {
         self._text = text
@@ -44,12 +45,12 @@ public struct TextAreaField: FormComponent {
                 .cornerRadius(10) // Makes the corners rounded
                 .overlay {
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(validator.isValid(text) ? Color.secondary.opacity(0.3): Color.red , lineWidth: 2)
+                        .stroke(!showValidationErrors || validator.isValid(text) ? Color.secondary.opacity(0.3): Color.red , lineWidth: 2)
                 }
             
             HStack(spacing: 5) {
                 Group {
-                    if !validator.isValid(text), let validatorMessage = validator.message {
+                    if showValidationErrors, !validator.isValid(text), let validatorMessage = validator.message {
                         Image(systemName: "exclamationmark.circle")
                         Text(validatorMessage)
                     }
