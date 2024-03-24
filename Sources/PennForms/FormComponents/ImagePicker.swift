@@ -43,6 +43,7 @@ public struct ImagePicker: FormComponent {
                                 .scaledToFill()
                                 .frame(width: 350, height: 200)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .contentShape(RoundedRectangle(cornerRadius: 8)
                                 
                         }
                     },
@@ -61,6 +62,7 @@ public struct ImagePicker: FormComponent {
                                 .scaledToFill()
                                 .frame(width: 350, height: 200)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .contentShape(RoundedRectangle(cornerRadius: 8)
                                 
                         
                     }
