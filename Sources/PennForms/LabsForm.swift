@@ -47,6 +47,8 @@ struct TestForm: View {
     
     @State private var amenities: OrderedSet = ["Gym", "Private bathroom", "asd", "asdas", "qweuh"]
     
+    @State var showValidationErrors = false
+    
     var dateRange: ClosedRange<Date> {
         let upper = Calendar.current.date(byAdding: .init(day: 5), to: .now)!
         return .now...upper
@@ -100,7 +102,9 @@ struct TestForm: View {
                         .validator(.required)
                     
                     ComponentWrapper {
-                        Button(action: {}) {
+                        Button(action: {
+                            showValidationErrors = true
+                        }) {
                             Text("Submit")
                                 .font(.title3)
                                 .bold()
@@ -115,6 +119,7 @@ struct TestForm: View {
                         .disabled(!formState.isValid)
                     }
                 }
+                .environment(\.showValidationErrors, showValidationErrors)
             }
             .navigationTitle("Info form")
         }
