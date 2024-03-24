@@ -10,6 +10,7 @@ public struct TagSelector<Tag: Hashable>: FormComponent {
     
     @Environment(\.validator) var validator
     @Environment(\.colorScheme) var colorScheme
+    @Environment(\.showValidationErrors) var showValidationErrors
     
     public enum Customisable {
         case notCustomisable
@@ -69,7 +70,7 @@ public struct TagSelector<Tag: Hashable>: FormComponent {
                     .buttonStyle(.plain)
                 }
             
-            if !validator.isValid(selection as AnyValidator.Input), let message = validator.message {
+            if showValidationErrors, !validator.isValid(selection as AnyValidator.Input), let message = validator.message {
                 HStack(spacing: 5) {
                     Image(systemName: "exclamationmark.circle")
                     Text(message)
