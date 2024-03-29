@@ -10,6 +10,7 @@ import PhotosUI
 
 public struct ImagePicker: FormComponent {
     @Environment(\.validator) var validator
+    @Environment(\.showValidationErrors) var showValidationErrors
     @State var selection: [PhotosPickerItem]
     @Binding var selectedImages: [UIImage]
     @Binding var existingImages: [String]
@@ -75,7 +76,7 @@ public struct ImagePicker: FormComponent {
                     .frame(width: 350, height: 200)
                     .background(RoundedRectangle(cornerRadius: 8)
                         .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [7])))
-                    .foregroundColor(validator.isValid(selectedImages.count + existingImages.count) ? Color.secondary : Color.red)
+                    .foregroundColor(!showValidationErrors || validator.isValid(selectedImages.count + existingImages.count) ? Color.secondary : Color.red)
                 }
                              .onChange(of: selection) { newSelection in
                                  Task {
@@ -158,7 +159,7 @@ public struct ImagePicker: FormComponent {
                 }
             }
             
-            if !validator.isValid(selectedImages.count + existingImages.count), let validatorMessage = validator.message {
+            if showValidationErrors, !validator.isValid(selectedImages.count + existingImages.count), let validatorMessage = validator.message {
                 HStack(spacing: 5) {
                     Image(systemName: "exclamationmark.circle")
                     Text(validatorMessage)
