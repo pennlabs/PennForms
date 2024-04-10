@@ -61,7 +61,7 @@ public struct ImagePicker: FormComponent {
                                 url: URL(string: url),
                                 content: { image in
                                     image.resizable()
-                                        .scaledToFill()
+                                        .scaledToFit()
                                         .badge(imageStr: "xmark", badgeColor: Color(uiColor: .systemGray3), textColor:
                                                 Color(uiColor: .systemGray), action: {
                                             withAnimation {
@@ -80,7 +80,7 @@ public struct ImagePicker: FormComponent {
                         ForEach(selectedImages, id: \.self) { image in
                             Image(uiImage: image)
                                 .resizable()
-                                .scaledToFill()
+                                .scaledToFit()
                                 .frame(width: 120, height: 120)
                         }
                     }
