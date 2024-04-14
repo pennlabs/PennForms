@@ -30,24 +30,61 @@ public struct ImagePicker: FormComponent {
     
     public var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            PhotosPicker(selection: $selection,
-                         maxSelectionCount: maxSelectionCount - existingImages.count,
-                         matching: .any(of: [.images, .not(.videos)])) {
-                VStack(spacing: 8) {
-                    Image(systemName: "photo.badge.plus")
-                    Text("Add Photos")
-                }
-                .frame(width: 350, height: 200)
-                .background(RoundedRectangle(cornerRadius: 8)
-                    .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [7])))
-                .foregroundColor(!showValidationErrors || validator.isValid(selectedImages.count + existingImages.count) ? Color.secondary : Color.red)
-            }
-            .onChange(of: selection) { newSelection in
-                Task {
-                    selectedImages.removeAll()
-                    for item in newSelection {
-                        if let data = try? await item.loadTransferable(type: Data.self), let image = UIImage(data: data) {
-                            selectedImages.append(image)
+            if existingImages.count > 0 {
+                            AsyncImage(
+                                url: URL(string: existingImages[0]),
+                                content: { image in
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
+                                            .frame(width: 350, height: 200)
+                                        
+                                        image
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(width: 350, height: 200)
+                                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                                            
+                                    }
+                                },
+                                placeholder: {
+                                    ProgressView()
+                                }
+                            )
+                        } else if selectedImages.count > 0 {
+                            ZStack {
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
+                                            .frame(width: 350, height: 200)
+                                        
+                                Image(uiImage: selectedImages[0])
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(width: 350, height: 200)
+                                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                                            
+                                    
+                                }
+                        } else {
+                            PhotosPicker(selection: $selection,
+                                         maxSelectionCount: maxSelectionCount - existingImages.count,
+                                         matching: .any(of: [.images, .not(.videos)])) {
+                                VStack(spacing: 8) {
+                                    Image(systemName: "photo.badge.plus")
+                                    Text("Add Photos")
+                                }
+                                .frame(width: 350, height: 200)
+                                .background(RoundedRectangle(cornerRadius: 8)
+                                    .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [7])))
+                                .foregroundColor(!showValidationErrors || validator.isValid(selectedImages.count + existingImages.count) ? Color.secondary : Color.red)
+                            }
+                                         .onChange(of: selection) { newSelection in
+                                             Task {
+                                                 selectedImages.removeAll()
+                                                 for item in newSelection {
+                                                     if let data = try? await item.loadTransferable(type: Data.self), let image = UIImage(data: data) {
+                                                         selectedImages.append(image)
+                                                     }
                         }
                     }
                 }
@@ -55,46 +92,49 @@ public struct ImagePicker: FormComponent {
             
             ScrollView(.horizontal) {
                 HStack(spacing: 8) {
-                    if existingImages.count > 0 {
-                        ForEach(existingImages, id: \.self) { url in
-                            AsyncImage(
-                                url: URL(string: url),
-                                content: { image in
-                                    
-                                    image.resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                                                       .frame(width: 350, height: 200)
-                                                                       .clipShape(RoundedRectangle(cornerRadius: 8))
-                                        .badge(imageStr: "xmark", badgeColor: Color(uiColor: .systemGray3), textColor:
-                                                Color(uiColor: .systemGray), action: {
-                                            withAnimation {
-                                                existingImages.removeAll(where: { $0 == url })
-                                            }
-                                        })
-                                        .frame(width: 120, height: 120)
-                                },
-                                placeholder: {
-                                    ProgressView()
-                                }
-                            )
+                    ForEach(Array(existingImages.enumerated()), id: \.offset) { index, url in
+                        if index != 0 {
+//                            ForEach(existingImages, id: \.self) { url in
+                                AsyncImage(
+                                    url: URL(string: url),
+                                    content: { image in
+                                        
+                                        image.resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(width: 350, height: 200)
+                                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                                            .badge(imageStr: "xmark", badgeColor: Color(uiColor: .systemGray3), textColor:
+                                                    Color(uiColor: .systemGray), action: {
+                                                withAnimation {
+                                                    existingImages.removeAll(where: { $0 == url })
+                                                }
+                                            })
+                                            .frame(width: 120, height: 120)
+                                    },
+                                    placeholder: {
+                                        ProgressView()
+                                    }
+                                )
+//                            }
                         }
                     }
-                    if selectedImages.count > 0 {
-                        ForEach(selectedImages, id: \.self) { image in
-                            Image(uiImage: image)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                                               .frame(width: 120, height: 120)
-                                                               .clipShape(RoundedRectangle(cornerRadius: 8))
+                    if (existingImages.count == 0 && selectedImages.count-1 > 0) || selectedImages.count > 0 {
+                        ForEach(Array(selectedImages.enumerated()), id: \.offset) { index, image in
+                            if index != 0 {
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 120, height: 120)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
                         }
                     }
                     if selectedImages.count + existingImages.count < maxSelectionCount {
                         ForEach(0..<(maxSelectionCount - selectedImages.count - existingImages.count), id: \.self) { _ in
-                            Image(systemName: "photo.badge.plus")
+                            RoundedRectangle(cornerRadius: 8)
                                 .frame(width: 120, height: 120)
-                                .background(RoundedRectangle(cornerRadius: 8)
-                                    .strokeBorder(style: StrokeStyle(lineWidth: 0.5)))
-                                .foregroundColor(Color.secondary)
+                                .foregroundColor(Color.gray.opacity(0.5)) // Fill color for the rounded rectangle
+                                
                         }
                     }
                 }
