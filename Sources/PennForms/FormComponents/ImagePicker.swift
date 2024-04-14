@@ -60,8 +60,11 @@ public struct ImagePicker: FormComponent {
                             AsyncImage(
                                 url: URL(string: url),
                                 content: { image in
+                                    
                                     image.resizable()
-                                        .scaledToFit()
+                                        .aspectRatio(contentMode: .fill)
+                                                                       .frame(width: 350, height: 200)
+                                                                       .clipShape(RoundedRectangle(cornerRadius: 8))
                                         .badge(imageStr: "xmark", badgeColor: Color(uiColor: .systemGray3), textColor:
                                                 Color(uiColor: .systemGray), action: {
                                             withAnimation {
@@ -80,8 +83,9 @@ public struct ImagePicker: FormComponent {
                         ForEach(selectedImages, id: \.self) { image in
                             Image(uiImage: image)
                                 .resizable()
-                                .scaledToFit()
-                                .frame(width: 120, height: 120)
+                                .aspectRatio(contentMode: .fill)
+                                                               .frame(width: 120, height: 120)
+                                                               .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
                     }
                     if selectedImages.count + existingImages.count < maxSelectionCount {
