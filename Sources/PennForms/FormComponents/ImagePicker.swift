@@ -31,40 +31,86 @@ public struct ImagePicker: FormComponent {
     public var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             if existingImages.count > 0 {
-                            AsyncImage(
-                                url: URL(string: existingImages[0]),
-                                content: { image in
-                                    ZStack {
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
-                                            .frame(width: 350, height: 200)
-                                        
-                                        image
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                            .frame(width: 350, height: 200)
-                                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                                            
-                                    }
-                                },
-                                placeholder: {
-                                    ProgressView()
-                                }
-                            )
-                        } else if selectedImages.count > 0 {
+                
+                PhotosPicker(selection: $selection,
+                             maxSelectionCount: maxSelectionCount - existingImages.count,
+                             matching: .any(of: [.images, .not(.videos)])) {
+                    AsyncImage(
+                        url: URL(string: existingImages[0]),
+                        content: { image in
                             ZStack {
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
-                                            .frame(width: 350, height: 200)
-                                        
-                                Image(uiImage: selectedImages[0])
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                            .frame(width: 350, height: 200)
-                                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                                            
+                                RoundedRectangle(cornerRadius: 8)
+                                    .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
+                                    .frame(width: 350, height: 200)
+                                
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 350, height: 200)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
                                     
-                                }
+                            }
+                        },
+                        placeholder: {
+                            ProgressView()
+                        }
+                    )
+                    .frame(width: 350, height: 200)
+                    .background(RoundedRectangle(cornerRadius: 8)
+                        .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [7])))
+                    .foregroundColor(!showValidationErrors || validator.isValid(selectedImages.count + existingImages.count) ? Color.secondary : Color.red)
+                }
+                             .onChange(of: selection) { newSelection in
+                                 Task {
+                                     selectedImages.removeAll()
+                                     for item in newSelection {
+                                         if let data = try? await item.loadTransferable(type: Data.self), let image = UIImage(data: data) {
+                                             selectedImages.append(image)
+                                         }
+                                     }
+                                 }
+                             }
+                                     
+                
+                
+                            
+                        } else if selectedImages.count > 0 {
+                            PhotosPicker(selection: $selection,
+                                         maxSelectionCount: maxSelectionCount - existingImages.count,
+                                         matching: .any(of: [.images, .not(.videos)])) {
+                                ZStack {
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
+                                                .frame(width: 350, height: 200)
+                                            
+                                    Image(uiImage: selectedImages[0])
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                                .frame(width: 350, height: 200)
+                                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                                
+                                        
+                                    }
+                                .frame(width: 350, height: 200)
+                                .background(RoundedRectangle(cornerRadius: 8)
+                                    .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [7])))
+                                .foregroundColor(!showValidationErrors || validator.isValid(selectedImages.count + existingImages.count) ? Color.secondary : Color.red)
+                            }
+                                         .onChange(of: selection) { newSelection in
+                                             Task {
+                                                 selectedImages.removeAll()
+                                                 for item in newSelection {
+                                                     if let data = try? await item.loadTransferable(type: Data.self), let image = UIImage(data: data) {
+                                                         selectedImages.append(image)
+                                                     }
+                                                 }
+                                             }
+                                         }
+                                                 
+                            
+                            
+                            
+                            
                         } else {
                             PhotosPicker(selection: $selection,
                                          maxSelectionCount: maxSelectionCount - existingImages.count,
