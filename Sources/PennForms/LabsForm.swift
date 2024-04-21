@@ -50,7 +50,7 @@ struct TestForm: View {
     @State var showValidationErrors = false
     
     var dateRange: ClosedRange<Date> {
-        let upper = Calendar.current.date(byAdding: .init(day: 5), to: .now)!
+        let upper = Date.distantFuture
         return .now...upper
     }
     

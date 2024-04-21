@@ -4,7 +4,8 @@ public struct DateRangeField: FormComponent {
     
     @Binding var lowerDate: Date
     @Binding var upperDate: Date
-    @State var wasSet: Bool = false
+    @State var wasSet1: Bool = false
+    @State var wasSet2: Bool = false
     @Environment(\.validator) var validator
     @Environment(\.showValidationErrors) var showValidationErrors
     
@@ -48,8 +49,10 @@ public struct DateRangeField: FormComponent {
                     .bold()
             }
             HStack {
-                DateRangeSubfield(date: $lowerDate, range: self.range.lowerBound...upperDate, placeholder: lowerPlaceholder, wasSet: $wasSet)
-                DateRangeSubfield(date: $upperDate, range: lowerDate...self.range.upperBound, placeholder: upperPlaceholder, wasSet: $wasSet)
+                let begin = range.lowerBound < lowerDate ? lowerDate : range.lowerBound
+                let end = range.upperBound > upperDate ? upperDate : range.upperBound
+                DateRangeSubfield(date: $lowerDate, range: self.range.lowerBound...end, placeholder: lowerPlaceholder, wasSet: $wasSet1)
+                DateRangeSubfield(date: $upperDate, range: begin...self.range.upperBound, placeholder: upperPlaceholder, wasSet: $wasSet2)
             }
             
             if showValidationErrors, !validator.isValid(lowerDate as AnyValidator.Input) || !validator.isValid(upperDate as AnyValidator.Input), let validatorMessage = validator.message {
@@ -62,8 +65,10 @@ public struct DateRangeField: FormComponent {
             }
         }
         .padding(.bottom, 5)
-        .onChange(of: wasSet) { _ in
+        .onChange(of: wasSet1) { _ in
             self.lowerDate = self.range.lowerBound == .distantPast ? .now : self.range.lowerBound
+        }
+        .onChange(of: wasSet2) { _ in
             self.upperDate = Calendar.current.date(byAdding: .day, value: upperOffset, to: .now) ?? (self.range.upperBound == .distantFuture ? .now : self.range.upperBound)
         }
     }
