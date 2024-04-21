@@ -49,8 +49,10 @@ public struct DateRangeField: FormComponent {
                     .bold()
             }
             HStack {
-                DateRangeSubfield(date: $lowerDate, range: self.range.lowerBound...upperDate, placeholder: lowerPlaceholder, wasSet1: $wasSet1, wasSet2: $wasSet2, set: 1)
-                DateRangeSubfield(date: $upperDate, range: self.range.lowerBound...self.range.upperBound, placeholder: upperPlaceholder, wasSet1: $wasSet1, wasSet2: $wasSet2, set: 2)
+                let begin = range.lowerBound < lowerDate ? lowerDate : range.lowerBound
+                let end = range.upperBound > upperDate ? upperDate : range.upperBound
+                DateRangeSubfield(date: $lowerDate, range: self.range.lowerBound...end, placeholder: lowerPlaceholder, wasSet: $wasSet1)
+                DateRangeSubfield(date: $upperDate, range: begin...self.range.upperBound, placeholder: upperPlaceholder, wasSet: $wasSet2)
             }
             
             if showValidationErrors, !validator.isValid(lowerDate as AnyValidator.Input) || !validator.isValid(upperDate as AnyValidator.Input), let validatorMessage = validator.message {
@@ -76,9 +78,7 @@ private struct DateRangeSubfield: View {
     @Binding var date: Date
     var range: ClosedRange<Date>
     var placeholder: String?
-    @Binding var wasSet1: Bool
-    @Binding var wasSet2: Bool
-    var set: Int
+    @Binding var wasSet: Bool
     
     @Environment(\.validator) var validator
     @Environment(\.colorScheme) var colorScheme
@@ -88,11 +88,7 @@ private struct DateRangeSubfield: View {
     var body: some View {
         Button {
             isPickerVisible.toggle()
-            if set == 1 {
-                    wasSet1 = true
-            } else {
-                    wasSet2 = true
-            }
+            wasSet = true
         } label: {
             HStack {
                 Group {
