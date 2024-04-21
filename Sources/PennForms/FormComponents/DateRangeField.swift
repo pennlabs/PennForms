@@ -49,9 +49,9 @@ public struct DateRangeField: FormComponent {
                     .bold()
             }
             HStack {
-                let begin = range.lowerBound < lowerDate ? lowerDate : range.lowerBound
-                let end = range.upperBound > upperDate ? upperDate : range.upperBound
-                DateRangeSubfield(date: $lowerDate, range: self.range.lowerBound...end, placeholder: lowerPlaceholder, wasSet: $wasSet1)
+                let begin = max(self.lowerDate, self.range.lowerBound)
+                let end = min(self.upperDate, self.range.upperBound)
+                DateRangeSubfield(date: $lowerDate, range: min(self.range.lowerBound, end)...max(self.range.lowerBound, end), placeholder: lowerPlaceholder, wasSet: $wasSet1)
                 DateRangeSubfield(date: $upperDate, range: begin...self.range.upperBound, placeholder: upperPlaceholder, wasSet: $wasSet2)
             }
             
@@ -69,7 +69,7 @@ public struct DateRangeField: FormComponent {
             self.lowerDate = self.range.lowerBound == .distantPast ? .now : self.range.lowerBound
         }
         .onChange(of: wasSet2) { _ in
-            self.upperDate = Calendar.current.date(byAdding: .day, value: upperOffset, to: .now) ?? (self.range.upperBound == .distantFuture ? .now : self.range.upperBound)
+            self.upperDate = min(Calendar.current.date(byAdding: .day, value: upperOffset, to: self.range.lowerBound == .distantPast ? .now : self.range.lowerBound) ?? .now, self.range.upperBound)
         }
     }
 }
