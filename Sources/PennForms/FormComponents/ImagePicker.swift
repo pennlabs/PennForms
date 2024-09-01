@@ -31,6 +31,7 @@ public struct ImagePicker: FormComponent {
     public var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             if existingImages.count > 0 {
+                // if there are existing images in the database it displays the first one in the big photo frame
                 AsyncImage(
                     url: URL(string: existingImages[0]),
                     content: { image in
@@ -52,6 +53,7 @@ public struct ImagePicker: FormComponent {
                     }
                 )
             } else if selectedImages.count > 0 {
+                // else if there are selected images it displays the first one in the big photo frame
                 ZStack {
                             RoundedRectangle(cornerRadius: 8)
                                 .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
@@ -66,6 +68,7 @@ public struct ImagePicker: FormComponent {
                         
                     }
             } else {
+                // else it displays the red "Add Photos" in the big photo frame
                 PhotosPicker(selection: $selection,
                              maxSelectionCount: maxSelectionCount - existingImages.count,
                              matching: .any(of: [.images, .not(.videos)])) {
@@ -95,6 +98,7 @@ public struct ImagePicker: FormComponent {
                 HStack(spacing: 8) {
                     ForEach(Array(existingImages.enumerated()), id: \.offset) { index, image in
                         if index != 0 {
+                            // if there are existing images in database, the first one would have been placed in the big photo frame in the previous if statement, Thus we start displaying them from index 1
                             ForEach(existingImages, id: \.self) { url in
                                 AsyncImage(
                                     url: URL(string: url),
@@ -116,6 +120,7 @@ public struct ImagePicker: FormComponent {
                         }
                     }
                     if (existingImages.count == 0 && selectedImages.count-1 > 0) || selectedImages.count > 0  {
+                        // if there were no existing images and there are a number of selected images, then this displays the rest of the selected images from index 1. else if there were existing images then the first big photo frame is already filled and we start the selected images at count 0.
                         ForEach(Array(selectedImages.enumerated()), id: \.offset) { index, image in
                             if index != 0 {
                                 ZStack {
@@ -134,6 +139,7 @@ public struct ImagePicker: FormComponent {
                     
                     }
                     if selectedImages.count + existingImages.count < maxSelectionCount {
+                        // if there are still spaces left for images to be added, we show the add image small icon boxes
                         ForEach(0..<(maxSelectionCount - selectedImages.count - existingImages.count), id: \.self) { _ in
                             PhotosPicker(selection: $selection,
                                          maxSelectionCount: maxSelectionCount - existingImages.count,
