@@ -1,4 +1,5 @@
 import SwiftUI
+@_spi(Advanced) import SwiftUIIntrospect
 
 public struct TextLineField: FormComponent {
     @Binding var text: String
@@ -33,7 +34,7 @@ public struct TextLineField: FormComponent {
                     .bold()
             }
             TextField(placeholder ?? "", text: $text)
-                .introspect(.textField, on: .iOS(.v16), .iOS(.v17)) { textField in
+                .introspect(.textField, on: .iOS(.v16...)) { textField in
                     if textField.text == "∞" {
                         textField.text = ""
                     }
