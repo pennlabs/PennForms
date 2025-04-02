@@ -1,4 +1,5 @@
 import SwiftUI
+@_spi(Advanced) import SwiftUIIntrospect
 
 public struct TextAreaField: FormComponent {
     @Binding var text: String
@@ -36,7 +37,7 @@ public struct TextAreaField: FormComponent {
                     .bold()
             }
             TextEditor(text: $text)
-                .introspect(.textEditor, on: .iOS(.v16), .iOS(.v17)) { textEditor in
+                .introspect(.textEditor, on: .iOS(.v16...)) { textEditor in
                     if textEditor.text == "∞" {
                         self.text = ""
                     }
