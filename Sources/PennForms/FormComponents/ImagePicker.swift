@@ -42,9 +42,10 @@ public struct ImagePicker: FormComponent {
                             
                             image
                                 .resizable()
-                                .aspectRatio(contentMode: .fill)
+                                .scaledToFill()
                                 .frame(width: 350, height: 200)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .allowsHitTesting(false)
                                 
                         }
                     },
@@ -61,9 +62,11 @@ public struct ImagePicker: FormComponent {
                             
                     Image(uiImage: selectedImages[0])
                                 .resizable()
-                                .aspectRatio(contentMode: .fill)
+                                .scaledToFill()
                                 .frame(width: 350, height: 200)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .contentShape(RoundedRectangle(cornerRadius: 8))
+                                .allowsHitTesting(false)
                                 
                         
                     }
