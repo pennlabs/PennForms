@@ -40,7 +40,7 @@ public struct TextLineField: FormComponent {
                     }
                 }
                 .componentFormStyle(
-                    isValid: validator.isValid(text), validatorMessage: validator.message
+                    isValid: validator.isValid(text), validatorMessage: validator.message(text)
                 )
         }
     }

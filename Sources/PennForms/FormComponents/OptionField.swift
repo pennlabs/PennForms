@@ -51,7 +51,7 @@ public struct OptionField<Option: Hashable>: FormComponent {
             .customPickerStyle(
                 labelText: selection == nil ? nil : toString(selection!), placeholder: placeholder, width: 200, isValid: validator.isValid(selection as AnyValidator.Input)
             )
-            if showValidationErrors, !validator.isValid(selection as AnyValidator.Input), let message = validator.message {
+            if showValidationErrors, !validator.isValid(selection as AnyValidator.Input), let message = validator.message(selection as AnyValidator.Input) {
                 HStack(spacing: 5) {
                     Image(systemName: "exclamationmark.circle")
                     Text(message)

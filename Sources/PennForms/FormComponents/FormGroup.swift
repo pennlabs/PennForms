@@ -35,7 +35,7 @@ public extension FormGroup {
                      .validator(AnyValidator { false })
                     HStack(spacing: 5) {
                         Image(systemName: "exclamationmark.circle")
-                        Text(validator.message ?? "Enter a valid input")
+                        Text(validator.message(nil) ?? "Enter a valid input")
                     }
                     .foregroundColor(.red)
                 } else {

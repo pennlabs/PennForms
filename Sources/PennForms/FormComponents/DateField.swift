@@ -76,7 +76,7 @@ public struct DateField: FormComponent {
                 )
             }
             
-            if showValidationErrors, !validator.isValid(date as AnyValidator.Input), let validatorMessage = validator.message {
+            if showValidationErrors, !validator.isValid(date as AnyValidator.Input), let validatorMessage = validator.message(date as AnyValidator.Input) {
                 HStack(spacing: 5) {
                     Image(systemName: "exclamationmark.circle")
                     Text(validatorMessage)

@@ -1,14 +1,14 @@
 //
-//  AtLeastValidator.swift
+//  AtMostValidator.swift
 //
 //
-//  Created by Jordan H on 3/6/24.
+//  Created by Jordan H on 4/4/25.
 //
 
 import Foundation
 import OrderedCollections
 
-public struct AtLeastValidator<T: Comparable>: Validator {
+public struct AtMostValidator<T: Comparable>: Validator {
     public let message: (Input?) -> String?
     public let limit: T
 
@@ -25,13 +25,13 @@ public struct AtLeastValidator<T: Comparable>: Validator {
 
     public init(value: T) {
         self.limit = value
-        self.message = { _ in "Must be at least \(value)" }
+        self.message = { _ in "Must be at most \(value)" }
     }
 
     public typealias Input = Any
     public func isValid(_ input: Any) -> Bool {
         if let input = input as? T {
-            return input >= limit
+            return input <= limit
         } else {
             return true
         }
@@ -39,7 +39,7 @@ public struct AtLeastValidator<T: Comparable>: Validator {
 }
 
 public extension Validator {
-    func atLeast<T: Comparable>(value: T, _ message: String) -> Self { AtLeastValidator(value: value, message) as! Self }
+    func atMost<T: Comparable>(value: T, _ message: String) -> Self { AtMostValidator(value: value, message) as! Self }
 
-    func atLeast<T: Comparable>(value: T) -> Self { AtLeastValidator(value: value) as! Self }
+    func atMost<T: Comparable>(value: T) -> Self { AtMostValidator(value: value) as! Self }
 }

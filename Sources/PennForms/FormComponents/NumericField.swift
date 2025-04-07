@@ -95,7 +95,7 @@ public struct NumericField<FormatStyle: ParseableFormatStyle>: FormComponent whe
                   }
                 })
                 .componentFormStyle(
-                    isValid: validator.isValid(value as AnyValidator.Input), validatorMessage: validator.message
+                    isValid: validator.isValid(value as AnyValidator.Input), validatorMessage: validator.message(value as AnyValidator.Input)
                 )
             // Bug with currency formatters, where only works if the currency symbol is deleted when entering the value
                 .onReceive(NotificationCenter.default.publisher(for: UITextField.textDidBeginEditingNotification)) { obj in

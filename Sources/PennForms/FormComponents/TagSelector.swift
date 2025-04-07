@@ -70,7 +70,7 @@ public struct TagSelector<Tag: Hashable>: FormComponent {
                     .buttonStyle(.plain)
                 }
             
-            if showValidationErrors, !validator.isValid(selection as AnyValidator.Input), let message = validator.message {
+            if showValidationErrors, !validator.isValid(selection as AnyValidator.Input), let message = validator.message(selection as AnyValidator.Input) {
                 HStack(spacing: 5) {
                     Image(systemName: "exclamationmark.circle")
                     Text(message)

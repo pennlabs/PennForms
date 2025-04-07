@@ -3,7 +3,11 @@ import SwiftUI
 public protocol Validator<Input> {
     associatedtype Input
     func isValid(_ input: Input) -> Bool
-    var message: String? { get }
+
+    // This is a function because the message might depend on the input
+    // For example, in ManyValidator, the first validator might pass, while the second fails
+    // Thus we need to show the second validator's message (hence it is input dependent)
+    var message: (Input?) -> String? { get }
 }
 
 public extension Validator {
@@ -27,7 +31,7 @@ public extension View {
     func validator<V: Validator>(_ validator: V) -> some FormComponent where V.Input: Any {
         ComponentWrapper { self.environment(\.validator, AnyValidator(validator)) }
     }
-    
+
     func validator(_ isValid: @escaping () -> Bool, message: String? = nil) -> some FormComponent {
         ComponentWrapper { self.environment(\.validator, AnyValidator(isValid, message: message)) }
     }

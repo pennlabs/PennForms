@@ -79,7 +79,14 @@ struct TestForm: View {
                     .validator(.required)
                     
                     DateField(date: $date3, placeholder: "Date of birth")
-                        .validator(.required)
+                        .validator([
+                            AnyValidator(.required),
+                            AnyValidator(AtMostValidator(value: date1 ?? (date2 ?? Date.distantFuture), {
+                                let formatter = DateFormatter()
+                                formatter.dateFormat = "MM/dd/yyyy"
+                                return "Must be no later than \(formatter.string(from: $0))"
+                            }))
+                        ])
                     
                     PairFields {
                         OptionField($numRommates, range: 0...4, title: "# roommates")

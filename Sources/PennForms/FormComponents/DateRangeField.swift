@@ -49,13 +49,15 @@ public struct DateRangeField: FormComponent {
                     .bold()
             }
             HStack {
-                let begin = range.lowerBound < lowerDate ? lowerDate : range.lowerBound
-                let end = range.upperBound > upperDate ? upperDate : range.upperBound
-                DateRangeSubfield(date: $lowerDate, range: self.range.lowerBound...end, placeholder: lowerPlaceholder, wasSet: $wasSet1)
-                DateRangeSubfield(date: $upperDate, range: begin...self.range.upperBound, placeholder: upperPlaceholder, wasSet: $wasSet2)
+                let begin = max(lowerDate, range.lowerBound)
+                let end = min(upperDate, range.upperBound)
+                let validBegin = min(range.upperBound, begin)
+                let validEnd = max(range.lowerBound, end)
+                DateRangeSubfield(date: $lowerDate, range: self.range.lowerBound...validEnd, placeholder: lowerPlaceholder, wasSet: $wasSet1)
+                DateRangeSubfield(date: $upperDate, range: validBegin...self.range.upperBound, placeholder: upperPlaceholder, wasSet: $wasSet2)
             }
             
-            if showValidationErrors, !validator.isValid(lowerDate as AnyValidator.Input) || !validator.isValid(upperDate as AnyValidator.Input), let validatorMessage = validator.message {
+            if showValidationErrors, !validator.isValid(lowerDate as AnyValidator.Input) || !validator.isValid(upperDate as AnyValidator.Input), let validatorMessage = validator.message(lowerDate as AnyValidator.Input) ?? validator.message(upperDate as AnyValidator.Input) {
                 HStack(spacing: 5) {
                     Image(systemName: "exclamationmark.circle")
                     Text(validatorMessage)

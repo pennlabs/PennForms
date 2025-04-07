@@ -165,7 +165,7 @@ public struct ImagePicker: FormComponent {
                 }
             }
             
-            if showValidationErrors, !validator.isValid(selectedImages.count + existingImages.count), let validatorMessage = validator.message {
+            if showValidationErrors, !validator.isValid(selectedImages.count + existingImages.count), let validatorMessage = validator.message(selectedImages.count + existingImages.count) {
                 HStack(spacing: 5) {
                     Image(systemName: "exclamationmark.circle")
                     Text(validatorMessage)

@@ -51,7 +51,7 @@ public struct TextAreaField: FormComponent {
             
             HStack(spacing: 5) {
                 Group {
-                    if showValidationErrors, !validator.isValid(text), let validatorMessage = validator.message {
+                    if showValidationErrors, !validator.isValid(text), let validatorMessage = validator.message(text) {
                         Image(systemName: "exclamationmark.circle")
                         Text(validatorMessage)
                     }
