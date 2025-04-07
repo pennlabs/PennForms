@@ -4,17 +4,17 @@ public struct FormGroup<Content: FormComponent>: FormComponent {
     let title: String?
     @FormBuilder let content: () -> Content
     @Environment(\.validator) private var validator
-    
+
     public init(title: String, @FormBuilder content: @escaping () -> Content) {
         self.title = title
         self.content = content
     }
-    
+
     public init(@FormBuilder content: @escaping () -> Content) {
         self.title = nil
         self.content = content
     }
-    
+
     public var body: some View {
         VStack(alignment: .leading) {
             if let title {

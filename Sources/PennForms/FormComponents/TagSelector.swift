@@ -7,16 +7,16 @@ public struct TagSelector<Tag: Hashable>: FormComponent {
     let toString: (Tag) -> String
     let customisable: Customisable
     let title: String?
-    
+
     @Environment(\.validator) var validator
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.showValidationErrors) var showValidationErrors
-    
+
     public enum Customisable {
         case notCustomisable
         case customisable(tagFromString: (String) -> Tag)
     }
-    
+
     public init(selection: Binding<OrderedSet<Tag>>, tags: Binding<OrderedSet<Tag>>, toString: @escaping (Tag) -> String, _ customisable: Customisable = .notCustomisable, title: String? = nil) {
         self._selection = selection
         self._tags = tags
@@ -25,7 +25,7 @@ public struct TagSelector<Tag: Hashable>: FormComponent {
         self.title = title
         self._validator = Environment(\.validator)
     }
-    
+
     public init(selection: Binding<OrderedSet<Tag>>, tags: Binding<OrderedSet<Tag>>, customisable: Customisable = .notCustomisable, title: String? = nil) where Tag: RawRepresentable<String> {
         self._selection = selection
         self._tags = tags
@@ -34,7 +34,7 @@ public struct TagSelector<Tag: Hashable>: FormComponent {
         self.title = title
         self._validator = Environment(\.validator)
     }
-    
+
     public init(selection: Binding<OrderedSet<Tag>>, tags: Binding<OrderedSet<Tag>>, customisable: Customisable = .notCustomisable, title: String? = nil) where Tag: LosslessStringConvertible {
         self._selection = selection
         self._tags = tags
@@ -43,7 +43,7 @@ public struct TagSelector<Tag: Hashable>: FormComponent {
         self.title = title
         self._validator = Environment(\.validator)
     }
-    
+
     public var body: some View {
         VStack(alignment: .leading) {
             if let title {
@@ -69,7 +69,7 @@ public struct TagSelector<Tag: Hashable>: FormComponent {
                     }
                     .buttonStyle(.plain)
                 }
-            
+
             if showValidationErrors, !validator.isValid(selection as AnyValidator.Input), let message = validator.message(selection as AnyValidator.Input) {
                 HStack(spacing: 5) {
                     Image(systemName: "exclamationmark.circle")
@@ -90,11 +90,11 @@ struct TagGrid<Tag: Hashable, Content: View>: View {
     let alignment: HorizontalAlignment
     let content: (Tag) -> Content
     @State var elementsSize: [Tag: CGSize] = [:]
-    
+
     @State var showTagCreator = false
     @State var newTag = ""
-    
-    var body : some View {
+
+    var body: some View {
         VStack(alignment: alignment, spacing: spacing) {
             ForEach(computeRows(), id: \.self) { rowElements in
                 HStack(spacing: spacing) {
@@ -107,7 +107,7 @@ struct TagGrid<Tag: Hashable, Content: View>: View {
                     }
                 }
             }
-            
+
             if case let .customisable(tagFromString) = customisable {
                 Button(action: { showTagCreator = true }) {
                     HStack {
@@ -143,15 +143,15 @@ struct TagGrid<Tag: Hashable, Content: View>: View {
             }
         }
     }
-    
+
     func computeRows() -> [[Tag]] {
         var rows: [[Tag]] = [[]]
         var currentRow = 0
         var remainingWidth = availableWidth
-        
+
         for element in data {
             let elementSize = elementsSize[element, default: CGSize(width: availableWidth, height: 1)]
-            
+
             if remainingWidth - (elementSize.width + spacing) >= 0 {
                 rows[currentRow].append(element)
             } else {
@@ -159,10 +159,10 @@ struct TagGrid<Tag: Hashable, Content: View>: View {
                 rows.append([element])
                 remainingWidth = availableWidth
             }
-            
+
             remainingWidth = remainingWidth - (elementSize.width + spacing)
         }
-        
+
         return rows
     }
 }

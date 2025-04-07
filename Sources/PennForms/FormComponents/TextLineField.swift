@@ -6,14 +6,14 @@ public struct TextLineField: FormComponent {
     let placeholder: String?
     let title: String?
     @Environment(\.validator) private var validator
-    
+
     public init(_ text: Binding<String>, placeholder: String? = nil, title: String? = nil) {
         self._text = text
         self.placeholder = placeholder
         self.title = title
         self._validator = Environment(\.validator)
     }
-    
+
     public init(_ text: Binding<String?>, placeholder: String? = nil, title: String? = nil) {
         self._text = Binding(
             get: {
@@ -26,7 +26,7 @@ public struct TextLineField: FormComponent {
         self.title = title
         self._validator = Environment(\.validator)
     }
-    
+
     public var body: some View {
         VStack(alignment: .leading) {
             if let title {
