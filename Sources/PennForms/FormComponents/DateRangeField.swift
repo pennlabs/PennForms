@@ -1,7 +1,6 @@
 import SwiftUI
 
 public struct DateRangeField: FormComponent {
-
     @Binding var lowerDate: Date
     @Binding var upperDate: Date
     @State var wasSet1: Bool = false
@@ -49,21 +48,26 @@ public struct DateRangeField: FormComponent {
                     .bold()
             }
             HStack {
-                let begin = max(lowerDate, range.lowerBound)
-                let end = min(upperDate, range.upperBound)
-                let validBegin = min(range.upperBound, begin)
-                let validEnd = max(range.lowerBound, end)
-                DateRangeSubfield(date: $lowerDate, range: self.range.lowerBound...validEnd, placeholder: lowerPlaceholder, wasSet: $wasSet1)
-                DateRangeSubfield(date: $upperDate, range: validBegin...self.range.upperBound, placeholder: upperPlaceholder, wasSet: $wasSet2)
+                DateRangeSubfield(date: $lowerDate, range: self.range, placeholder: lowerPlaceholder, wasSet: $wasSet1)
+                DateRangeSubfield(date: $upperDate, range: self.range, placeholder: upperPlaceholder, wasSet: $wasSet2)
             }
 
-            if showValidationErrors, !validator.isValid(lowerDate as AnyValidator.Input) || !validator.isValid(upperDate as AnyValidator.Input), let validatorMessage = validator.message(lowerDate as AnyValidator.Input) ?? validator.message(upperDate as AnyValidator.Input) {
-                HStack(spacing: 5) {
-                    Image(systemName: "exclamationmark.circle")
-                    Text(validatorMessage)
+            if showValidationErrors {
+                if !validator.isValid(lowerDate as AnyValidator.Input) || !validator.isValid(upperDate as AnyValidator.Input), let validatorMessage = validator.message(lowerDate as AnyValidator.Input) ?? validator.message(upperDate as AnyValidator.Input) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "exclamationmark.circle")
+                        Text(validatorMessage)
+                    }
+                    .foregroundColor(.red)
+                    .preference(key: ValidPreferenceKey.self, value: false)
+                } else if lowerDate > upperDate {
+                    HStack(spacing: 5) {
+                        Image(systemName: "exclamationmark.circle")
+                        Text("Start date must be before end date")
+                    }
+                    .foregroundColor(.red)
+                    .preference(key: ValidPreferenceKey.self, value: false)
                 }
-                .foregroundColor(.red)
-                .preference(key: ValidPreferenceKey.self, value: false)
             }
         }
         .padding(.bottom, 5)

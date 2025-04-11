@@ -8,7 +8,8 @@ public struct ManyValidators: Validator {
     public init(_ validators: [AnyValidator]) {
         self.validators = validators
         self.message = { input in
-            if let firstFailure = validators.first { !$0.isValid(input) } {
+            guard let input else { return nil }
+            if let firstFailure = validators.first(where: { !$0.isValid(input) }) {
                 return firstFailure.message(input)
             } else {
                 return nil

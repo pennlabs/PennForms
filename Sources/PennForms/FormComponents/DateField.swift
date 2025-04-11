@@ -1,7 +1,6 @@
 import SwiftUI
 
 public struct DateField: FormComponent {
-
     @Binding var date: Date
     @State var isPickerVisible = false
     @Environment(\.validator) var validator
