@@ -2,18 +2,24 @@ import SwiftUI
 
 public struct ManyValidators: Validator {
     public typealias Input = Any
+    public let message: (Input?) -> String?
     let validators: [AnyValidator]
-    
+
     public init(_ validators: [AnyValidator]) {
         self.validators = validators
-        self.message =  validators[0].message
+        self.message = { input in
+            guard let input else { return nil }
+            if let firstFailure = validators.first(where: { !$0.isValid(input) }) {
+                return firstFailure.message(input)
+            } else {
+                return nil
+            }
+        }
     }
-    
+
     public func isValid(_ input: Input) -> Bool {
         return validators.allSatisfy { $0.isValid(input) }
     }
-    
-    public var message: String?
 }
 
 public extension View {

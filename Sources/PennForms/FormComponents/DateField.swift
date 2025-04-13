@@ -1,17 +1,16 @@
 import SwiftUI
 
 public struct DateField: FormComponent {
-    
     @Binding var date: Date
     @State var isPickerVisible = false
     @Environment(\.validator) var validator
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.showValidationErrors) var showValidationErrors
-    
+
     let range: ClosedRange<Date>?
     let title: String?
     let placeholder: String?
-    
+
     public init(date: Binding<Date?>, in range: ClosedRange<Date>? = nil, title: String? = nil, placeholder: String? = nil) {
         self._date = Binding(
             get: {
@@ -27,7 +26,7 @@ public struct DateField: FormComponent {
         self.placeholder = placeholder
         self._validator = Environment(\.validator)
     }
-    
+
     public init(date: Binding<Date>, in range: ClosedRange<Date>? = nil, title: String? = nil, placeholder: String? = nil) {
         self._date = date
         self.range = range
@@ -35,19 +34,19 @@ public struct DateField: FormComponent {
         self.placeholder = placeholder
         self._validator = Environment(\.validator)
     }
-    
+
     public var body: some View {
         VStack(alignment: .leading) {
             if let title {
                 Text(title)
                     .bold()
             }
-            
+
             Button {
                 if !isPickerVisible && date == .distantFuture {
                     date = Date()
                 }
-                
+
                 isPickerVisible.toggle()
             } label: {
                 HStack {
@@ -55,7 +54,7 @@ public struct DateField: FormComponent {
                         if date == .distantFuture {
                             Text(placeholder ?? "")
                                 .foregroundStyle(.secondary)
-                            
+
                         } else {
                             Text(date, format: .dateTime.month(.twoDigits).day(.twoDigits).year())
                         }
@@ -72,11 +71,11 @@ public struct DateField: FormComponent {
                 .cornerRadius(10)
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(!showValidationErrors || validator.isValid(date as AnyValidator.Input) ? Color.secondary.opacity(0.3): Color.red , lineWidth: 2)
+                        .stroke(!showValidationErrors || validator.isValid(date as AnyValidator.Input) ? Color.secondary.opacity(0.3): Color.red, lineWidth: 2)
                 )
             }
-            
-            if showValidationErrors, !validator.isValid(date as AnyValidator.Input), let validatorMessage = validator.message {
+
+            if showValidationErrors, !validator.isValid(date as AnyValidator.Input), let validatorMessage = validator.message(date as AnyValidator.Input) {
                 HStack(spacing: 5) {
                     Image(systemName: "exclamationmark.circle")
                     Text(validatorMessage)
@@ -96,17 +95,17 @@ internal struct DatePickerPopover: View {
     @Binding var date: Date
     var range: ClosedRange<Date>
     var title: String?
-    
+
     @Environment(\.dismiss) var dismiss
     @Environment(\.verticalSizeClass) var sizeClass
-    
+
     var innerBody: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
                     DatePicker("", selection: $date, in: range, displayedComponents: [.date])
                         .datePickerStyle(.graphical)
-                    
+
                     Button("Select") {
                         dismiss()
                     }
@@ -123,7 +122,7 @@ internal struct DatePickerPopover: View {
         .presentationDragIndicator(.visible)
         .frame(minWidth: 400, minHeight: 500)
     }
-    
+
     var body: some View {
         if #available(iOS 16.4, *) {
             innerBody

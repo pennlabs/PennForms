@@ -15,7 +15,7 @@ public struct ImagePicker: FormComponent {
     @Binding var selectedImages: [UIImage]
     @Binding var existingImages: [String]
     let maxSelectionCount: Int
-    
+
     public init(_ selectedImages: Binding<[UIImage]>, existingImages: Binding<[String]>? = nil as Binding<[String]>?, maxSelectionCount: Int = 5) {
         self.selection = []
         self._selectedImages = selectedImages
@@ -27,7 +27,7 @@ public struct ImagePicker: FormComponent {
         self.maxSelectionCount = maxSelectionCount
         self._validator = Environment(\.validator)
     }
-    
+
     public var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             if existingImages.count > 0 {
@@ -39,13 +39,13 @@ public struct ImagePicker: FormComponent {
                             RoundedRectangle(cornerRadius: 8)
                                 .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
                                 .frame(width: 350, height: 200)
-                            
+
                             image
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
                                 .frame(width: 350, height: 200)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
-                                
+
                         }
                     },
                     placeholder: {
@@ -58,14 +58,13 @@ public struct ImagePicker: FormComponent {
                             RoundedRectangle(cornerRadius: 8)
                                 .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
                                 .frame(width: 350, height: 200)
-                            
+
                     Image(uiImage: selectedImages[0])
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
                                 .frame(width: 350, height: 200)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
-                                
-                        
+
                     }
             } else {
                 // else it displays the red "Add Photos" in the big photo frame
@@ -92,8 +91,7 @@ public struct ImagePicker: FormComponent {
                                  }
                              }
             }
-            
-            
+
             ScrollView(.horizontal) {
                 HStack(spacing: 8) {
                     ForEach(Array(existingImages.enumerated()), id: \.offset) { index, image in
@@ -119,7 +117,7 @@ public struct ImagePicker: FormComponent {
                             }
                         }
                     }
-                    if (existingImages.count == 0 && selectedImages.count-1 > 0) || selectedImages.count > 0  {
+                    if (existingImages.count == 0 && selectedImages.count-1 > 0) || selectedImages.count > 0 {
                         // if there were no existing images and there are a number of selected images, then this displays the rest of the selected images from index 1. else if there were existing images then the first big photo frame is already filled and we start the selected images at count 0.
                         ForEach(Array(selectedImages.enumerated()), id: \.offset) { index, image in
                             if index != 0 {
@@ -127,7 +125,7 @@ public struct ImagePicker: FormComponent {
                                     RoundedRectangle(cornerRadius: 8)
                                         .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
                                         .frame(width: 120, height: 120)
-                                    
+
                                     Image(uiImage: image)
                                         .resizable()
                                         .aspectRatio(contentMode: .fill)
@@ -136,7 +134,7 @@ public struct ImagePicker: FormComponent {
                                 }
                             }
                         }
-                    
+
                     }
                     if selectedImages.count + existingImages.count < maxSelectionCount {
                         // if there are still spaces left for images to be added, we show the add image small icon boxes
@@ -144,7 +142,7 @@ public struct ImagePicker: FormComponent {
                             PhotosPicker(selection: $selection,
                                          maxSelectionCount: maxSelectionCount - existingImages.count,
                                          matching: .any(of: [.images, .not(.videos)])) {
- 
+
                                     Image(systemName: "photo.badge.plus")
                                 .frame(width: 120, height: 120)
                                 .background(RoundedRectangle(cornerRadius: 8)
@@ -164,8 +162,8 @@ public struct ImagePicker: FormComponent {
                     }
                 }
             }
-            
-            if showValidationErrors, !validator.isValid(selectedImages.count + existingImages.count), let validatorMessage = validator.message {
+
+            if showValidationErrors, !validator.isValid(selectedImages.count + existingImages.count), let validatorMessage = validator.message(selectedImages.count + existingImages.count) {
                 HStack(spacing: 5) {
                     Image(systemName: "exclamationmark.circle")
                     Text(validatorMessage)
@@ -188,7 +186,7 @@ struct CustomBadgeModifier: ViewModifier {
     let textColor: Color
     let enabled: Bool
     let action: (() -> Void)?
-    
+
     init(text: String? = nil, imageStr: String? = nil, badgeColor: Color = .red, textColor: Color = .white, enabled: Bool = true, action: (() -> Void)? = nil) {
         self.text = text
         self.imageStr = imageStr
@@ -197,7 +195,7 @@ struct CustomBadgeModifier: ViewModifier {
         self.enabled = enabled
         self.action = action
     }
-    
+
     @ViewBuilder
     func badgeView() -> some View {
         ZStack {
@@ -218,7 +216,7 @@ struct CustomBadgeModifier: ViewModifier {
         }
         .offset(x: 10, y: -10)
     }
-    
+
     func body(content: Content) -> some View {
         if enabled {
             if let action = action {
@@ -246,7 +244,7 @@ public extension View {
     func badge(_ text: String, badgeColor: Color = .red, textColor: Color = .white, enabled: Bool = true, action: (() -> Void)? = nil) -> some View {
         self.modifier(CustomBadgeModifier(text: text, badgeColor: badgeColor, textColor: textColor, enabled: enabled, action: action))
     }
-    
+
     func badge(imageStr: String, badgeColor: Color = .red, textColor: Color = .white, enabled: Bool = true, action: (() -> Void)? = nil) -> some View {
         self.modifier(CustomBadgeModifier(imageStr: imageStr, badgeColor: badgeColor, textColor: textColor, enabled: enabled, action: action))
     }

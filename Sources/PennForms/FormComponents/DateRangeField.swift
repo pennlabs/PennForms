@@ -1,20 +1,19 @@
 import SwiftUI
 
 public struct DateRangeField: FormComponent {
-    
     @Binding var lowerDate: Date
     @Binding var upperDate: Date
     @State var wasSet1: Bool = false
     @State var wasSet2: Bool = false
     @Environment(\.validator) var validator
     @Environment(\.showValidationErrors) var showValidationErrors
-    
+
     let range: ClosedRange<Date>
     let upperOffset: Int
     let title: String?
     let lowerPlaceholder: String?
     let upperPlaceholder: String?
-    
+
     public init(lowerDate: Binding<Date?>, upperDate: Binding<Date?>, in range: ClosedRange<Date>? = nil, upperOffset: Int = 0, title: String? = nil, lowerPlaceholder: String? = nil, upperPlaceholder: String? = nil) {
         self._lowerDate = Binding(
             get: {
@@ -41,7 +40,7 @@ public struct DateRangeField: FormComponent {
         self.upperPlaceholder = upperPlaceholder
         self._validator = Environment(\.validator)
     }
-    
+
     public var body: some View {
         VStack(alignment: .leading) {
             if let title {
@@ -49,19 +48,26 @@ public struct DateRangeField: FormComponent {
                     .bold()
             }
             HStack {
-                let begin = range.lowerBound < lowerDate ? lowerDate : range.lowerBound
-                let end = range.upperBound > upperDate ? upperDate : range.upperBound
-                DateRangeSubfield(date: $lowerDate, range: self.range.lowerBound...end, placeholder: lowerPlaceholder, wasSet: $wasSet1)
-                DateRangeSubfield(date: $upperDate, range: begin...self.range.upperBound, placeholder: upperPlaceholder, wasSet: $wasSet2)
+                DateRangeSubfield(date: $lowerDate, range: self.range, placeholder: lowerPlaceholder, wasSet: $wasSet1)
+                DateRangeSubfield(date: $upperDate, range: self.range, placeholder: upperPlaceholder, wasSet: $wasSet2)
             }
-            
-            if showValidationErrors, !validator.isValid(lowerDate as AnyValidator.Input) || !validator.isValid(upperDate as AnyValidator.Input), let validatorMessage = validator.message {
-                HStack(spacing: 5) {
-                    Image(systemName: "exclamationmark.circle")
-                    Text(validatorMessage)
+
+            if showValidationErrors {
+                if !validator.isValid(lowerDate as AnyValidator.Input) || !validator.isValid(upperDate as AnyValidator.Input), let validatorMessage = validator.message(lowerDate as AnyValidator.Input) ?? validator.message(upperDate as AnyValidator.Input) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "exclamationmark.circle")
+                        Text(validatorMessage)
+                    }
+                    .foregroundColor(.red)
+                    .preference(key: ValidPreferenceKey.self, value: false)
+                } else if lowerDate > upperDate {
+                    HStack(spacing: 5) {
+                        Image(systemName: "exclamationmark.circle")
+                        Text("Start date must be before end date")
+                    }
+                    .foregroundColor(.red)
+                    .preference(key: ValidPreferenceKey.self, value: false)
                 }
-                .foregroundColor(.red)
-                .preference(key: ValidPreferenceKey.self, value: false)
             }
         }
         .padding(.bottom, 5)
@@ -79,12 +85,12 @@ private struct DateRangeSubfield: View {
     var range: ClosedRange<Date>
     var placeholder: String?
     @Binding var wasSet: Bool
-    
+
     @Environment(\.validator) var validator
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.showValidationErrors) var showValidationErrors
     @State var isPickerVisible = false
-    
+
     var body: some View {
         Button {
             isPickerVisible.toggle()
@@ -100,7 +106,7 @@ private struct DateRangeSubfield: View {
                     }
                 }
                 .tint(colorScheme == .dark ? .white : .black)
-                
+
                 Spacer()
                 Image(systemName: "calendar")
                     .font(.title3)
@@ -111,7 +117,7 @@ private struct DateRangeSubfield: View {
             .cornerRadius(10)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(!showValidationErrors || validator.isValid(date as AnyValidator.Input) ? Color.secondary.opacity(0.3): Color.red , lineWidth: 2)
+                    .stroke(!showValidationErrors || validator.isValid(date as AnyValidator.Input) ? Color.secondary.opacity(0.3): Color.red, lineWidth: 2)
             )
         }
         .popover(isPresented: $isPickerVisible) {

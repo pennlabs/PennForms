@@ -6,10 +6,10 @@ public struct OptionField<Option: Hashable>: FormComponent {
     let toString: (Option) -> String
     let title: String?
     let placeholder: String?
-    
+
     @Environment(\.validator) var validator
     @Environment(\.showValidationErrors) var showValidationErrors
-    
+
     public init(_ selection: Binding<Option?>, options: [Option], toString: @escaping (Option) -> String, title: String? = nil, placeholder: String? = nil) {
         self._selection = selection
         self.options = options
@@ -17,7 +17,7 @@ public struct OptionField<Option: Hashable>: FormComponent {
         self.title = title
         self.placeholder = placeholder
     }
-    
+
     public init(_ selection: Binding<Option?>, options: [Option], title: String? = nil, placeholder: String? = nil) where Option: CaseIterable, Option: RawRepresentable<String> {
         self._selection = selection
         self.options = options
@@ -25,7 +25,7 @@ public struct OptionField<Option: Hashable>: FormComponent {
         self.title = title
         self.placeholder = placeholder
     }
-    
+
     public init(_ selection: Binding<Option?>, range: ClosedRange<Int>, title: String? = nil, placeholder: String? = nil) where Option == Int, Option: LosslessStringConvertible {
         self._selection = selection
         self.options = Array(range)
@@ -33,7 +33,7 @@ public struct OptionField<Option: Hashable>: FormComponent {
         self.title = title
         self.placeholder = placeholder
     }
-    
+
     public var body: some View {
         VStack(alignment: .leading) {
             if let title {
@@ -51,7 +51,7 @@ public struct OptionField<Option: Hashable>: FormComponent {
             .customPickerStyle(
                 labelText: selection == nil ? nil : toString(selection!), placeholder: placeholder, width: 200, isValid: validator.isValid(selection as AnyValidator.Input)
             )
-            if showValidationErrors, !validator.isValid(selection as AnyValidator.Input), let message = validator.message {
+            if showValidationErrors, !validator.isValid(selection as AnyValidator.Input), let message = validator.message(selection as AnyValidator.Input) {
                 HStack(spacing: 5) {
                     Image(systemName: "exclamationmark.circle")
                     Text(message)
@@ -68,9 +68,9 @@ struct CustomPickerStyle: ViewModifier {
     let placeholder: String?
     var width: CGFloat
     let isValid: Bool
-    
+
     @Environment(\.showValidationErrors) var showValidationErrors
-    
+
     func body(content: Content) -> some View {
         Menu {
             content
@@ -91,7 +91,7 @@ struct CustomPickerStyle: ViewModifier {
         .background(.background)
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(isValid || !showValidationErrors ? Color.secondary.opacity(0.3): Color.red , lineWidth: 2)
+                .stroke(isValid || !showValidationErrors ? Color.secondary.opacity(0.3): Color.red, lineWidth: 2)
         )
     }
 }

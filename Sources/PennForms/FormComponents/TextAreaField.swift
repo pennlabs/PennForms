@@ -3,20 +3,20 @@ import SwiftUI
 
 public struct TextAreaField: FormComponent {
     @Binding var text: String
-    
+
     let title: String?
     let characterCount: Int?
-    
+
     @Environment(\.validator) var validator
     @Environment(\.showValidationErrors) var showValidationErrors
-    
+
     public init(_ text: Binding<String>, characterCount: Int? = nil, title: String? = nil) {
         self._text = text
         self.characterCount = characterCount
         self.title = title
         self._validator = Environment(\.validator)
     }
-    
+
     public init(_ text: Binding<String?>, characterCount: Int? = nil, title: String? = nil) {
         self._text = Binding(
             get: {
@@ -29,7 +29,7 @@ public struct TextAreaField: FormComponent {
         self.title = title
         self._validator = Environment(\.validator)
     }
-    
+
     public var body: some View {
         VStack(alignment: .leading) {
             if let title {
@@ -46,19 +46,19 @@ public struct TextAreaField: FormComponent {
                 .cornerRadius(10) // Makes the corners rounded
                 .overlay {
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(!showValidationErrors || validator.isValid(text) ? Color.secondary.opacity(0.3): Color.red , lineWidth: 2)
+                        .stroke(!showValidationErrors || validator.isValid(text) ? Color.secondary.opacity(0.3): Color.red, lineWidth: 2)
                 }
-            
+
             HStack(spacing: 5) {
                 Group {
-                    if showValidationErrors, !validator.isValid(text), let validatorMessage = validator.message {
+                    if showValidationErrors, !validator.isValid(text), let validatorMessage = validator.message(text) {
                         Image(systemName: "exclamationmark.circle")
                         Text(validatorMessage)
                     }
                 }
                 .foregroundColor(.red)
                 .preference(key: ValidPreferenceKey.self, value: false)
-                
+
                 if let characterCount {
                     Spacer()
                     Text("\(characterCount - text.count) characters remaining")
@@ -75,4 +75,3 @@ public struct TextAreaField: FormComponent {
         .padding(.bottom, 5)
     }
 }
-

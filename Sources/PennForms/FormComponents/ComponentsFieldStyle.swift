@@ -15,10 +15,10 @@ struct ComponentFormStyleModifier: ViewModifier {
     @Environment(\.showValidationErrors) var showValidationErrors
     var isValid: Bool
     var validatorMessage: String?
-    
+
     func body(content: Content) -> some View {
         let isError = showValidationErrors && !isValid
-        
+
         return VStack(alignment: .leading) {
             content
                 .padding(.vertical, 15) // Adds space inside the text field
