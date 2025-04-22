@@ -19,17 +19,13 @@ public struct ImagePicker: FormComponent {
     public init(_ selectedImages: Binding<[UIImage]>, existingImages: Binding<[String]>? = nil as Binding<[String]>?, maxSelectionCount: Int = 5) {
         self.selection = []
         self._selectedImages = selectedImages
-        if let existingImagesBinding = existingImages {
-            self._existingImages = existingImagesBinding
-        } else {
-            self._existingImages = State(initialValue: []).projectedValue
-        }
+        self._existingImages = existingImages ?? State(initialValue: []).projectedValue
         self.maxSelectionCount = maxSelectionCount
         self._validator = Environment(\.validator)
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             if existingImages.count > 0 {
                 // if there are existing images in the database it displays the first one in the big photo frame
                 AsyncImage(
@@ -55,17 +51,16 @@ public struct ImagePicker: FormComponent {
             } else if selectedImages.count > 0 {
                 // else if there are selected images it displays the first one in the big photo frame
                 ZStack {
-                            RoundedRectangle(cornerRadius: 8)
-                                .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
-                                .frame(width: 350, height: 200)
+                    RoundedRectangle(cornerRadius: 8)
+                        .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
+                        .frame(width: 350, height: 200)
 
                     Image(uiImage: selectedImages[0])
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 350, height: 200)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-
-                    }
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 350, height: 200)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
             } else {
                 // else it displays the red "Add Photos" in the big photo frame
                 PhotosPicker(selection: $selection,
@@ -80,23 +75,23 @@ public struct ImagePicker: FormComponent {
                         .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [7])))
                     .foregroundColor(!showValidationErrors || validator.isValid(selectedImages.count + existingImages.count) ? Color.secondary : Color.red)
                 }
-                             .onChange(of: selection) { newSelection in
-                                 Task {
-                                     selectedImages.removeAll()
-                                     for item in newSelection {
-                                         if let data = try? await item.loadTransferable(type: Data.self), let image = UIImage(data: data) {
-                                             selectedImages.append(image)
-                                         }
-                                     }
-                                 }
-                             }
+                .onChange(of: selection) { newSelection in
+                    Task {
+                        selectedImages.removeAll()
+                        for item in newSelection {
+                            if let data = try? await item.loadTransferable(type: Data.self), let image = UIImage(data: data) {
+                                selectedImages.append(image)
+                            }
+                        }
+                    }
+                }
             }
 
             ScrollView(.horizontal) {
                 HStack(spacing: 8) {
                     ForEach(Array(existingImages.enumerated()), id: \.offset) { index, image in
                         if index != 0 {
-                            // if there are existing images in database, the first one would have been placed in the big photo frame in the previous if statement, Thus we start displaying them from index 1
+                            // if there are existing images in database, the first one would have been placed in the big photo frame in the previous if statement, thus we start displaying them from index 1
                             ForEach(existingImages, id: \.self) { url in
                                 AsyncImage(
                                     url: URL(string: url),
@@ -117,7 +112,7 @@ public struct ImagePicker: FormComponent {
                             }
                         }
                     }
-                    if (existingImages.count == 0 && selectedImages.count-1 > 0) || selectedImages.count > 0 {
+                    if (existingImages.count == 0 && selectedImages.count - 1 > 0) || selectedImages.count > 0 {
                         // if there were no existing images and there are a number of selected images, then this displays the rest of the selected images from index 1. else if there were existing images then the first big photo frame is already filled and we start the selected images at count 0.
                         ForEach(Array(selectedImages.enumerated()), id: \.offset) { index, image in
                             if index != 0 {
@@ -136,28 +131,27 @@ public struct ImagePicker: FormComponent {
                         }
 
                     }
-                    if selectedImages.count + existingImages.count < maxSelectionCount {
+                    if selectedImages.count + existingImages.count < maxSelectionCount - 1 {
                         // if there are still spaces left for images to be added, we show the add image small icon boxes
-                        ForEach(0..<(maxSelectionCount - selectedImages.count - existingImages.count), id: \.self) { _ in
+                        ForEach(0..<(maxSelectionCount - selectedImages.count - existingImages.count - 1), id: \.self) { _ in
                             PhotosPicker(selection: $selection,
                                          maxSelectionCount: maxSelectionCount - existingImages.count,
                                          matching: .any(of: [.images, .not(.videos)])) {
-
-                                    Image(systemName: "photo.badge.plus")
-                                .frame(width: 120, height: 120)
-                                .background(RoundedRectangle(cornerRadius: 8)
-                                    .strokeBorder(style: StrokeStyle(lineWidth: 1)))
-                                .foregroundColor(Color.secondary)
+                                Image(systemName: "photo.badge.plus")
+                                    .frame(width: 120, height: 120)
+                                    .background(RoundedRectangle(cornerRadius: 8)
+                                        .strokeBorder(style: StrokeStyle(lineWidth: 1)))
+                                    .foregroundColor(Color.secondary)
                             }
-                                         .onChange(of: selection) { newSelection in
-                                             Task {
-                                                 for item in newSelection {
-                                                     if let data = try? await item.loadTransferable(type: Data.self), let image = UIImage(data: data) {
-                                                         selectedImages.append(image)
-                                                     }
-                                                 }
-                                             }
-                                         }
+                            .onChange(of: selection) { newSelection in
+                                Task {
+                                    for item in newSelection {
+                                        if let data = try? await item.loadTransferable(type: Data.self), let image = UIImage(data: data) {
+                                            selectedImages.append(image)
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
