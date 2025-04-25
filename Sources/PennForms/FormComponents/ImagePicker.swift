@@ -2,18 +2,24 @@
 //  ImagePicker.swift
 //
 //
-//  Created by Christina Qiu on 2/23/24.
+//  Created by Jordan Hochman on 4/25/25.
 //
 
 import SwiftUI
 import PhotosUI
 
 public enum CustomImage: Equatable {
-    case existing(String)
-    case selected(UIImage, Int?)
+    case existing(String) // For existing images we have a URL to
+    case selected(UIImage, Int?) // For images selected by the PhotosPicker, second argument is id (it's optional in case ImagePicker is instantiated with some UIImages of unknown origin
+    case loading(Int) // For images selected by the PhotosPicker but that are still loading (none must exist for form validity)
 
-    var isSelected: Bool {
-        if case .selected = self { return true }
+    var isExisting: Bool {
+        if case .existing = self { return true }
+        return false
+    }
+
+    var isLoading: Bool {
+        if case .loading = self { return true }
         return false
     }
 
@@ -22,6 +28,8 @@ public enum CustomImage: Equatable {
         case .existing:
             return nil
         case .selected(_, let id):
+            return id
+        case .loading(let id):
             return id
         }
     }
@@ -36,6 +44,7 @@ struct LargeCustomImageView: View {
             AsyncImage(
                 url: URL(string: urlString),
                 content: { image in
+                    // TODO: Fix image size bug from before
                     ZStack {
                         RoundedRectangle(cornerRadius: 8)
                             .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
@@ -63,6 +72,14 @@ struct LargeCustomImageView: View {
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 350, height: 200)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+        case .loading:
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .foregroundStyle(.tertiary)
+                    .frame(width: 350, height: 200)
+
+                ProgressView()
             }
         }
     }
@@ -112,6 +129,14 @@ struct SmallCustomImageView: View {
                     .frame(width: 120, height: 120)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
             }
+        case .loading:
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .foregroundStyle(.tertiary)
+                    .frame(width: 120, height: 120)
+
+                ProgressView()
+            }
         }
     }
 }
@@ -134,36 +159,35 @@ public struct ImagePicker: FormComponent {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if images.count > 0 {
-                ZStack {
-                    LargeCustomImageView(image: images[0])
+            PhotosPicker(selection: $selection,
+                         maxSelectionCount: maxSelectionCount - images.count(where: { $0.isExisting }),
+                         matching: .any(of: [.images, .not(.videos)])) {
+                if images.count > 0 {
+                    ZStack {
+                        LargeCustomImageView(image: images[0])
 
-                    if draggedIndex == 0 {
-                        Color(.blue)
-                            .opacity(0.25)
-                            .frame(width: 350, height: 200)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        if draggedIndex == 0 {
+                            Color(.blue)
+                                .opacity(0.25)
+                                .frame(width: 350, height: 200)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
                     }
-                }
-                .draggable(0) {
-                    SmallCustomImageView(image: images[0])
-                }
-                .dropDestination(for: Int.self) { items, _ in
-                    guard let srcIndex = items.first, srcIndex > 0, srcIndex < images.count else {
-                        return false
+                    .draggable(0) {
+                        SmallCustomImageView(image: images[0])
                     }
-                    withAnimation {
-                        images.swapAt(srcIndex, 0)
+                    .dropDestination(for: Int.self) { items, _ in
+                        guard let srcIndex = items.first, srcIndex > 0, srcIndex < images.count else {
+                            return false
+                        }
+                        withAnimation {
+                            images.swapAt(srcIndex, 0)
+                        }
+                        return true
+                    } isTargeted: { isTargeted in
+                        draggedIndex = isTargeted ? 0 : nil
                     }
-                    return true
-                } isTargeted: { isTargeted in
-                    draggedIndex = isTargeted ? 0 : nil
-                }
-                // TODO: still let button select thingies
-            } else {
-                PhotosPicker(selection: $selection,
-                             maxSelectionCount: maxSelectionCount - images.count(where: { !$0.isSelected }),
-                             matching: .any(of: [.images, .not(.videos)])) {
+                } else {
                     VStack(spacing: 8) {
                         Image(systemName: "photo.badge.plus")
                         Text("Add Photos")
@@ -172,8 +196,10 @@ public struct ImagePicker: FormComponent {
                     .background(RoundedRectangle(cornerRadius: 8)
                         .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [7])))
                     .foregroundColor(!showValidationErrors || validator.isValid(images.count) ? Color.secondary : Color.red)
+                    .contentShape(RoundedRectangle(cornerRadius: 8))
                 }
             }
+            .buttonStyle(.plain)
 
             if maxSelectionCount > 1 {
                 ScrollView(.horizontal) {
@@ -181,19 +207,24 @@ public struct ImagePicker: FormComponent {
                         if images.count > 0 {
                             ForEach(Array(images.enumerated()), id: \.offset) { index, image in
                                 if index != 0 {
-                                    ZStack {
-                                        SmallCustomImageView(image: image, deleteAction: { urlString in
-                                            withAnimation {
-                                                images.removeAll { $0 == .existing(urlString) }
-                                            }
-                                        })
+                                    PhotosPicker(selection: $selection,
+                                                 maxSelectionCount: maxSelectionCount - images.count(where: { $0.isExisting }),
+                                                 matching: .any(of: [.images, .not(.videos)])) {
+                                        ZStack {
+                                            SmallCustomImageView(image: image, deleteAction: { urlString in
+                                                withAnimation {
+                                                    images.removeAll { $0 == .existing(urlString) }
+                                                }
+                                            })
 
-                                        if index == draggedIndex {
-                                            Color(.blue)
-                                                .opacity(0.25)
-                                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                            if index == draggedIndex {
+                                                Color(.blue)
+                                                    .opacity(0.25)
+                                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                            }
                                         }
                                     }
+                                    .buttonStyle(.plain)
                                     .draggable(index) {
                                         SmallCustomImageView(image: image)
                                     }
@@ -216,14 +247,16 @@ public struct ImagePicker: FormComponent {
                         if numTakenSlots < maxSelectionCount - 1 {
                             ForEach(0..<(maxSelectionCount - 1 - numTakenSlots), id: \.self) { _ in
                                 PhotosPicker(selection: $selection,
-                                             maxSelectionCount: maxSelectionCount - images.count(where: { !$0.isSelected }),
+                                             maxSelectionCount: maxSelectionCount - images.count(where: { $0.isExisting }),
                                              matching: .any(of: [.images, .not(.videos)])) {
                                     Image(systemName: "photo.badge.plus")
                                         .frame(width: 120, height: 120)
                                         .background(RoundedRectangle(cornerRadius: 8)
                                             .strokeBorder(style: StrokeStyle(lineWidth: 1)))
                                         .foregroundColor(Color.secondary)
+                                        .contentShape(RoundedRectangle(cornerRadius: 8))
                                 }
+                                .buttonStyle(.plain)
                                 .dropDestination(for: Int.self) { items, _ in
                                     guard let srcIndex = items.first, srcIndex >= 0, srcIndex < images.count else {
                                         return false
@@ -243,32 +276,52 @@ public struct ImagePicker: FormComponent {
                 }
             }
 
-            if showValidationErrors, !validator.isValid(images.count), let validatorMessage = validator.message(images.count) {
-                HStack(spacing: 5) {
-                    Image(systemName: "exclamationmark.circle")
-                    Text(validatorMessage)
+            if showValidationErrors {
+                if !validator.isValid(images.count), let validatorMessage = validator.message(images.count) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "exclamationmark.circle")
+                        Text(validatorMessage)
+                    }
+                    .foregroundColor(.red)
+                    .preference(key: ValidPreferenceKey.self, value: false)
+                } else if images.count(where: { $0.isLoading }) > 0 {
+                    HStack(spacing: 5) {
+                        Image(systemName: "exclamationmark.circle")
+                        Text("Please wait for images to finish loading!")
+                    }
+                    .foregroundColor(.red)
+                    .preference(key: ValidPreferenceKey.self, value: false)
                 }
-                .foregroundColor(.red)
-                .preference(key: ValidPreferenceKey.self, value: false)
             } else {
                 Text("Add up to \(maxSelectionCount) photo\(maxSelectionCount == 1 ? "" : "s")")
                     .font(.subheadline)
                     .foregroundColor(Color.secondary)
             }
         }
-        .onChange(of: selection) {
+        .onChange(of: selection) { _ in
             Task { await handleNewSelection(selection) }
         }
     }
 
     @MainActor
     func handleNewSelection(_ newSelection: [PhotosPickerItem]) async {
-        // TODO: This take too long, show user it's loading
         let itemsById = Dictionary(uniqueKeysWithValues: newSelection.map { ($0.hashValue, $0) })
         let newIds = Set(itemsById.keys)
 
         let existingIds = Set(images.compactMap(\.id))
         let idsToLoad = newIds.subtracting(existingIds)
+
+        images = images.filter { img in
+            switch img {
+            case .existing:
+                return true
+            case .selected(_, let id):
+                // keep if in newSelection, or if it had no id
+                return id.map { newIds.contains($0) } ?? true
+            case .loading(let id):
+                return newIds.contains(id)
+            }
+        } + idsToLoad.map { .loading($0) }
 
         let loadedImages: [Int: UIImage] = await withTaskGroup(of: (Int, UIImage)?.self) { group in
             for id in idsToLoad {
@@ -291,16 +344,13 @@ public struct ImagePicker: FormComponent {
             return dict
         }
 
-        images = images.filter { img in
+        images = images.compactMap { img in
             switch img {
-            case .existing:
-                return true
-            case let .selected(_, id):
-                // keep if in newSelection, or if it had no id
-                return id.map { newIds.contains($0) } ?? true
+            case .existing, .selected:
+                return img
+            case .loading(let id):
+                return loadedImages[id].map { .selected($0, id) }
             }
-        } + idsToLoad.compactMap { id in
-            loadedImages[id].map { .selected($0, id) }
         }
     }
 }
