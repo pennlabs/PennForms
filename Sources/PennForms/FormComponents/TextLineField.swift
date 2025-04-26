@@ -34,7 +34,7 @@ public struct TextLineField: FormComponent {
                     .bold()
             }
             TextField(placeholder ?? "", text: $text)
-                .introspect(.textField, on: .iOS(.v16...)) { textField in
+                .introspect(.textField, on: .iOS(.v17...)) { textField in
                     if textField.text == "∞" {
                         textField.text = ""
                     }

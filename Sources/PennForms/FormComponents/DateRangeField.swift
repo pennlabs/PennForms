@@ -71,10 +71,10 @@ public struct DateRangeField: FormComponent {
             }
         }
         .padding(.bottom, 5)
-        .onChange(of: wasSet1) { _ in
+        .onChange(of: wasSet1) {
             self.lowerDate = self.range.lowerBound == .distantPast ? .now : self.range.lowerBound
         }
-        .onChange(of: wasSet2) { _ in
+        .onChange(of: wasSet2) {
             self.upperDate = Calendar.current.date(byAdding: .day, value: upperOffset, to: .now) ?? (self.range.upperBound == .distantFuture ? .now : self.range.upperBound)
         }
     }

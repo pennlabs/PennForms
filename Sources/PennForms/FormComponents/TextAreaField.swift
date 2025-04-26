@@ -37,7 +37,7 @@ public struct TextAreaField: FormComponent {
                     .bold()
             }
             TextEditor(text: $text)
-                .introspect(.textEditor, on: .iOS(.v16...)) { textEditor in
+                .introspect(.textEditor, on: .iOS(.v17...)) { textEditor in
                     if textEditor.text == "∞" {
                         self.text = ""
                     }
@@ -67,7 +67,7 @@ public struct TextAreaField: FormComponent {
                 }
             }
         }
-        .onChange(of: text) { _ in
+        .onChange(of: text) {
             if let characterCount, text.count > characterCount {
                 text.removeLast(text.count - characterCount)
             }

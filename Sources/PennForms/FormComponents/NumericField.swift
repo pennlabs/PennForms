@@ -75,7 +75,7 @@ public struct NumericField<FormatStyle: ParseableFormatStyle>: FormComponent whe
             }
 
             TextField(placeholder ?? " ", value: $value, format: format)
-                .introspect(.textField, on: .iOS(.v16...), customize: { textField in
+                .introspect(.textField, on: .iOS(.v17...), customize: { textField in
                     if self.value == .nan {
                         textField.text = placeholder
                     }
