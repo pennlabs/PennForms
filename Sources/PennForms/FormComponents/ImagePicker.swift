@@ -35,8 +35,16 @@ public enum CustomImage: Equatable {
     }
 }
 
-struct LargeCustomImageView: View {
+struct CustomImageView: View {
     let image: CustomImage
+    let defaultWidth: CGFloat
+    let defaultHeight: CGFloat
+
+    init(image: CustomImage, defaultWidth: CGFloat, defaultHeight: CGFloat) {
+        self.image = image
+        self.defaultWidth = defaultWidth
+        self.defaultHeight = defaultHeight
+    }
 
     var body: some View {
         switch image {
@@ -44,40 +52,30 @@ struct LargeCustomImageView: View {
             AsyncImage(
                 url: URL(string: urlString),
                 content: { image in
-                    // TODO: Fix image size bug from before
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 8)
-                            .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
-                            .frame(width: 350, height: 200)
-
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 350, height: 200)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                    }
+                    image.resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                 },
                 placeholder: {
-                    ProgressView()
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8)
+                            .foregroundStyle(Color(uiColor: .systemGray3))
+                            .frame(width: defaultWidth, height: defaultHeight)
+
+                        ProgressView()
+                    }
                 }
             )
         case .selected(let image, _):
-            ZStack {
-                RoundedRectangle(cornerRadius: 8)
-                    .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
-                    .frame(width: 350, height: 200)
-
-                Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 350, height: 200)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-            }
+            Image(uiImage: image)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
         case .loading:
             ZStack {
                 RoundedRectangle(cornerRadius: 8)
-                    .foregroundStyle(.tertiary)
-                    .frame(width: 350, height: 200)
+                    .foregroundStyle(Color(uiColor: .systemGray3))
+                    .frame(width: defaultWidth, height: defaultHeight)
 
                 ProgressView()
             }
@@ -85,59 +83,53 @@ struct LargeCustomImageView: View {
     }
 }
 
-struct SmallCustomImageView: View {
+struct DraggableCustomImageModifier: ViewModifier {
+    let index: Int
     let image: CustomImage
-    let deleteAction: ((String) -> Void)?
+    @Binding var images: [CustomImage]
+    @Binding var draggedIndex: Int?
 
-    init(image: CustomImage, deleteAction: ((String) -> Void)? = nil) {
-        self.image = image
-        self.deleteAction = deleteAction
-    }
-
-    var body: some View {
-        switch image {
-        case .existing(let urlString):
-            AsyncImage(
-                url: URL(string: urlString),
-                content: { image in
-                    if let deleteAction {
-                        image.resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .badge(imageStr: "xmark", badgeColor: Color(uiColor: .systemGray3), textColor: Color(uiColor: .systemGray), action: {
-                                deleteAction(urlString)
-                            })
-                            .frame(width: 120, height: 120)
-                    } else {
-                        image.resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 120, height: 120)
-                    }
-                },
-                placeholder: {
-                    ProgressView()
+    func body(content: Content) -> some View {
+        content
+            .overlay {
+                if index == draggedIndex {
+                    Color.blue
+                        .opacity(0.25)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
-            )
-        case .selected(let image, _):
-            ZStack {
-                RoundedRectangle(cornerRadius: 8)
-                    .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
-                    .frame(width: 120, height: 120)
-
-                Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 120, height: 120)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
             }
-        case .loading:
-            ZStack {
-                RoundedRectangle(cornerRadius: 8)
-                    .foregroundStyle(.tertiary)
-                    .frame(width: 120, height: 120)
-
-                ProgressView()
+            .draggable(index) {
+                CustomImageView(image: image, defaultWidth: 120, defaultHeight: 120)
+                    .frame(maxWidth: 120, maxHeight: 120)
             }
-        }
+            .dropDestination(for: Int.self) { items, _ in
+                guard let srcIndex = items.first, srcIndex != index, srcIndex >= 0, srcIndex < images.count else {
+                    return false
+                }
+                withAnimation {
+                    images.swapAt(srcIndex, index)
+                }
+                return true
+            } isTargeted: { isTargeted in
+                draggedIndex = isTargeted ? index : nil
+            }
+            .badge(imageStr: "xmark", badgeColor: Color(uiColor: .systemGray3), textColor: Color(uiColor: .systemGray), enabled: image.isExisting, action: {
+                withAnimation {
+                    _ = images.remove(at: index)
+                }
+            })
+    }
+}
+
+extension View {
+    func draggableCustomImage(index: Int,
+                              image: CustomImage,
+                              images: Binding<[CustomImage]>,
+                              draggedIndex: Binding<Int?>) -> some View {
+        self.modifier(DraggableCustomImageModifier(index: index,
+                                                   image: image,
+                                                   images: images,
+                                                   draggedIndex: draggedIndex))
     }
 }
 
@@ -163,30 +155,9 @@ public struct ImagePicker: FormComponent {
                          maxSelectionCount: maxSelectionCount - images.count(where: { $0.isExisting }),
                          matching: .any(of: [.images, .not(.videos)])) {
                 if images.count > 0 {
-                    ZStack {
-                        LargeCustomImageView(image: images[0])
-
-                        if draggedIndex == 0 {
-                            Color(.blue)
-                                .opacity(0.25)
-                                .frame(width: 350, height: 200)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                        }
-                    }
-                    .draggable(0) {
-                        SmallCustomImageView(image: images[0])
-                    }
-                    .dropDestination(for: Int.self) { items, _ in
-                        guard let srcIndex = items.first, srcIndex > 0, srcIndex < images.count else {
-                            return false
-                        }
-                        withAnimation {
-                            images.swapAt(srcIndex, 0)
-                        }
-                        return true
-                    } isTargeted: { isTargeted in
-                        draggedIndex = isTargeted ? 0 : nil
-                    }
+                    CustomImageView(image: images[0], defaultWidth: 350, defaultHeight: 200)
+                        .draggableCustomImage(index: 0, image: images[0], images: $images, draggedIndex: $draggedIndex)
+                        .frame(maxWidth: 350, maxHeight: 200, alignment: .leading)
                 } else {
                     VStack(spacing: 8) {
                         Image(systemName: "photo.badge.plus")
@@ -205,40 +176,18 @@ public struct ImagePicker: FormComponent {
                 ScrollView(.horizontal) {
                     LazyHStack(spacing: 8) {
                         if images.count > 0 {
-                            ForEach(Array(images.enumerated()), id: \.offset) { index, image in
+                            ForEach(images.indices, id: \.self) { index in
+                                let depth = Double(images.count - index)
                                 if index != 0 {
                                     PhotosPicker(selection: $selection,
                                                  maxSelectionCount: maxSelectionCount - images.count(where: { $0.isExisting }),
                                                  matching: .any(of: [.images, .not(.videos)])) {
-                                        ZStack {
-                                            SmallCustomImageView(image: image, deleteAction: { urlString in
-                                                withAnimation {
-                                                    images.removeAll { $0 == .existing(urlString) }
-                                                }
-                                            })
-
-                                            if index == draggedIndex {
-                                                Color(.blue)
-                                                    .opacity(0.25)
-                                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                                            }
-                                        }
+                                        CustomImageView(image: images[index], defaultWidth: 120, defaultHeight: 120)
+                                            .draggableCustomImage(index: index, image: images[index], images: $images, draggedIndex: $draggedIndex)
+                                            .frame(maxWidth: 120, maxHeight: 120)
                                     }
                                     .buttonStyle(.plain)
-                                    .draggable(index) {
-                                        SmallCustomImageView(image: image)
-                                    }
-                                    .dropDestination(for: Int.self) { items, _ in
-                                        guard let srcIndex = items.first, srcIndex != index, srcIndex >= 0, srcIndex < images.count else {
-                                            return false
-                                        }
-                                        withAnimation {
-                                            images.swapAt(srcIndex, index)
-                                        }
-                                        return true
-                                    } isTargeted: { isTargeted in
-                                        draggedIndex = isTargeted ? index : nil
-                                    }
+                                    .zIndex(depth)
                                 }
                             }
                         }
@@ -274,6 +223,7 @@ public struct ImagePicker: FormComponent {
                     }
                     .fixedSize(horizontal: false, vertical: true)
                 }
+                .scrollClipDisabled()
             }
 
             if showValidationErrors {
@@ -298,7 +248,7 @@ public struct ImagePicker: FormComponent {
                     .foregroundColor(Color.secondary)
             }
         }
-        .onChange(of: selection) { _ in
+        .onChange(of: selection) {
             Task { await handleNewSelection(selection) }
         }
     }
@@ -356,6 +306,7 @@ public struct ImagePicker: FormComponent {
 }
 
 struct CustomBadgeModifier: ViewModifier {
+    let size: CGFloat
     let text: String?
     let imageStr: String?
     let badgeColor: Color
@@ -363,9 +314,10 @@ struct CustomBadgeModifier: ViewModifier {
     let enabled: Bool
     let action: (() -> Void)?
 
-    init(text: String? = nil, imageStr: String? = nil, badgeColor: Color = .red, textColor: Color = .white, enabled: Bool = true, action: (() -> Void)? = nil) {
+    init(text: String? = nil, imageStr: String? = nil, size: CGFloat = 16, badgeColor: Color = .red, textColor: Color = .white, enabled: Bool = true, action: (() -> Void)? = nil) {
         self.text = text
         self.imageStr = imageStr
+        self.size = size
         self.badgeColor = badgeColor
         self.textColor = textColor
         self.enabled = enabled
@@ -377,25 +329,25 @@ struct CustomBadgeModifier: ViewModifier {
         ZStack {
             Circle()
                 .fill(badgeColor)
-                .frame(width: 20, height: 20)
+                .frame(width: size, height: size)
 
             if let text = text {
                 Text(text)
                     .foregroundColor(textColor)
-                    .font(.system(size: 12))
+                    .font(.system(size: size * 3 / 4))
             } else if let imageStr = imageStr {
                 Image(systemName: imageStr)
                     .resizable()
                     .foregroundColor(textColor)
-                    .frame(width: 10, height: 10)
+                    .frame(width: size / 2, height: size / 2)
             }
         }
-        .offset(x: 10, y: -10)
+        .offset(x: size / 2, y: -size / 2)
     }
 
     func body(content: Content) -> some View {
         if enabled {
-            if let action = action {
+            if let action {
                 content
                     .overlay(
                         Button(action: action) {
@@ -426,14 +378,14 @@ public extension View {
     }
 }
 
-extension Int: Transferable {
+extension Int: @retroactive Transferable {
     public static var transferRepresentation: some TransferRepresentation {
         CodableRepresentation(contentType: .json)
     }
 }
 
 #Preview {
-    @State var images: [CustomImage] = []
+    @Previewable @State var images: [CustomImage] = []
     return ImagePicker($images, maxSelectionCount: 5)
         .validator(AtLeastValidator(value: 1, { "Must select at least \($0) image\($0 == 1 ? "" : "s")" }))
 }
